@@ -21,3 +21,11 @@ data class OsuConfig(
     val clientSecret: String,
     val redirectUri: String
 )
+
+@ConstructorBinding
+@ConfigurationProperties("cors")
+data class CorsConfig(
+    val uris: String,
+    val methods: String,
+    val headers: String
+)

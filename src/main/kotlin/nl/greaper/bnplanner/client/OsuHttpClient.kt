@@ -2,7 +2,9 @@ package nl.greaper.bnplanner.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import mu.KotlinLogging
 import nl.greaper.bnplanner.config.OsuConfig
+import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
 import nl.greaper.bnplanner.model.osu.OsuOAuth
 import org.springframework.http.*
@@ -15,6 +17,8 @@ class OsuHttpClient(
     val config: OsuConfig,
     val objectMapper: ObjectMapper
 ) {
+    val log = KotlinLogging.logger {  }
+
     private val rest = RestTemplate()
     private val authRest = RestTemplate()
     private val headers = HttpHeaders()
@@ -48,11 +52,22 @@ class OsuHttpClient(
         return request(uri, HttpMethod.GET, osuApiToken)
     }
 
+    fun findBeatmapWithId(osuApiToken: String, osuId: String): BeatmapSet? {
+        return try {
+            val response = get("/beatmapsets/$osuId", osuApiToken)
+            return response.body?.let { objectMapper.readValue<BeatmapSet>(it) }
+        } catch (ex: Exception) {
+            log.error(ex) { "Unable to get a beatmap from the osu api, using id $osuId" }
+            null
+        }
+    }
+
     fun findUserWithId(osuApiToken: String, osuId: String): Me? {
         return try {
             val response = get("/users/$osuId", osuApiToken)
             return response.body?.let { objectMapper.readValue<Me>(it) }
         } catch (ex: Exception) {
+            log.error(ex) { "Unable to get a user from the osu api, using id $osuId" }
             null
         }
     }

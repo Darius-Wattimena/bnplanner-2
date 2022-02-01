@@ -1,4 +1,4 @@
-package nl.greaper.bnplanner.model
+package nl.greaper.bnplanner.model.beatmap
 
 import org.bson.codecs.pojo.annotations.BsonId
 

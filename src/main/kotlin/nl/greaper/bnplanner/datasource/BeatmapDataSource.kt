@@ -2,7 +2,7 @@ package nl.greaper.bnplanner.datasource
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import nl.greaper.bnplanner.model.Beatmap
+import nl.greaper.bnplanner.model.beatmap.Beatmap
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
 import org.litote.kmongo.ascending

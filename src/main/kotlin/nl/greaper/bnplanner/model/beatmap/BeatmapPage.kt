@@ -1,4 +1,4 @@
-package nl.greaper.bnplanner.model
+package nl.greaper.bnplanner.model.beatmap
 
 enum class BeatmapPage {
     PENDING,

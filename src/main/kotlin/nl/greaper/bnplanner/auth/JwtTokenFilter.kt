@@ -71,7 +71,7 @@ class JwtTokenFilter(
         }
 
         val authentication = UsernamePasswordAuthenticationToken(
-            permission, token, permission.roles.map(::SimpleGrantedAuthority)
+            permission, token, permission.roles.map { SimpleGrantedAuthority("ROLE_$it") }
         )
 
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)

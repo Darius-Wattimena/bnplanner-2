@@ -1,5 +1,6 @@
-package nl.greaper.bnplanner.model
+package nl.greaper.bnplanner.model.beatmap
 
+import nl.greaper.bnplanner.model.Gamemode
 import org.bson.codecs.pojo.annotations.BsonId
 import java.time.Instant
 
@@ -11,14 +12,14 @@ data class Beatmap(
     val note: String,
     val mapperId: String,
     val status: BeatmapStatus,
-    val gamemodes: List<GamemodeBeatmap>,
+    val gamemodes: Map<Gamemode, BeatmapGamemode>,
 
     val dateAdded: Instant,
     val dateUpdated: Instant,
-    val dateRanked: Instant
+    val dateRanked: Instant?
 )
 
-data class GamemodeBeatmap(
+data class BeatmapGamemode(
     val gamemode: Gamemode,
     val nominators: List<BeatmapNominator>,
     val isReady: Boolean

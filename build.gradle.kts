@@ -25,6 +25,7 @@ dependencies {
     implementation("org.litote.kmongo:kmongo:4.4.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("io.github.microutils:kotlin-logging:2.1.21")
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
 
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
