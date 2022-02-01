@@ -6,6 +6,7 @@ import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
+import nl.greaper.bnplanner.model.beatmap.ExposedBeatmap
 import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.service.BeatmapService
@@ -34,8 +35,11 @@ class BeatmapController(
     
     @GetMapping("/{id}")
     @RolesAllowed(RolePermission.VIEWER)
-    fun findBeatmap(@PathVariable("id") id: String): Beatmap? {
-        return service.findBeatmap(id)
+    fun findBeatmap(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @PathVariable("id") id: String
+    ): ExposedBeatmap? {
+        return service.findBeatmap(osuApiToken, id)
     }
 
     @GetMapping("/count")
@@ -54,16 +58,27 @@ class BeatmapController(
     @GetMapping("/find")
     @RolesAllowed(RolePermission.VIEWER)
     fun findBeatmaps(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam page: BeatmapPage,
         @RequestParam from: Int,
         @RequestParam to: Int,
         @RequestParam(required = false) artist: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
-        @RequestParam(required = false) status: Set<BeatmapStatus> = emptySet(),
-        @RequestParam(required = false) nominators: Set<String> = emptySet()
-    ): List<Beatmap> {
-        return service.findBeatmaps(artist, title, mapper, status, nominators, page, from, to)
+        @RequestParam(required = false) status: Set<BeatmapStatus>?,
+        @RequestParam(required = false) nominators: Set<String>?
+    ): List<ExposedBeatmap> {
+        return service.findBeatmaps(
+            osuApiToken,
+            artist,
+            title,
+            mapper,
+            status ?: emptySet(),
+            nominators ?: emptySet(),
+            page,
+            from,
+            to
+        )
     }
 
     @PostMapping("/add")

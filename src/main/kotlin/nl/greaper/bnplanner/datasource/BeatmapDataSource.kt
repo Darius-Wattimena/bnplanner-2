@@ -43,8 +43,10 @@ class BeatmapDataSource(private val database: MongoDatabase): BaseDataSource<Bea
     ): List<Beatmap> {
         val findQuery = collection.find(filter)
         findQuery.limit(to - from)
-        findQuery.skip(from)
-        findQuery.sort(and(ascending(Beatmap::status), descending(Beatmap::dateUpdated)))
+        if (from > 0) {
+            findQuery.skip(from)
+        }
+        // findQuery.sort(and(ascending(Beatmap::status), descending(Beatmap::dateUpdated)))
 
         return findQuery.toMutableList()
     }

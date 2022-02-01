@@ -64,7 +64,7 @@ class OsuHttpClient(
 
     fun findUserWithId(osuApiToken: String, osuId: String): Me? {
         return try {
-            val response = get("/users/$osuId", osuApiToken)
+            val response = get("/users/$osuId?key=id", osuApiToken)
             return response.body?.let { objectMapper.readValue<Me>(it) }
         } catch (ex: Exception) {
             log.error(ex) { "Unable to get a user from the osu api, using id $osuId" }
@@ -73,8 +73,8 @@ class OsuHttpClient(
     }
 
     private fun request(uri: String, method: HttpMethod, authToken: String, body: String = "") : ResponseEntity<String> {
-        headers.remove("Authorization")
-        headers.set("Authorization", "Bearer $authToken")
+        headers.remove(HttpHeaders.AUTHORIZATION)
+        headers.set(HttpHeaders.AUTHORIZATION, authToken)
 
         val request = if (body == "") {
             HttpEntity(headers)

@@ -2,7 +2,7 @@ package nl.greaper.bnplanner.model.osu
 
 data class MeGroup(
     val id: String,
-    val playmodes: List<String> = emptyList()
+    val playmodes: List<String>?
 ) {
 
     companion object {

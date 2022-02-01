@@ -8,6 +8,9 @@ import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
+import nl.greaper.bnplanner.model.beatmap.ExposedBeatmap
+import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapGamemode
+import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapNominator
 import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.util.quote
@@ -25,10 +28,11 @@ import java.time.Instant
 @Service
 class BeatmapService(
     private val dataSource: BeatmapDataSource,
+    private val userService: UserService,
     private val osuHttpClient: OsuHttpClient
 ) {
-    fun findBeatmap(id: String): Beatmap? {
-        return dataSource.findById(id)
+    fun findBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
+        return dataSource.findById(id)?.toExposedBeatmap(osuApiToken)
     }
 
     fun deleteBeatmap(osuId: String) {
@@ -47,6 +51,7 @@ class BeatmapService(
     }
 
     fun findBeatmaps(
+        osuApiToken: String,
         artist: String?,
         title: String?,
         mapper: String?,
@@ -55,8 +60,12 @@ class BeatmapService(
         page: BeatmapPage,
         from: Int,
         to: Int
-    ): List<Beatmap> {
-        return dataSource.findAll(setupFilter(artist, title, mapper, status, nominators, page), from, to)
+    ): List<ExposedBeatmap> {
+        return dataSource.findAll(
+            setupFilter(artist, title, mapper, status, nominators, page),
+            from,
+            to
+        ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
     }
 
     fun addBeatmap(osuApiToken: String, newBeatmap: NewBeatmap) {
@@ -126,6 +135,13 @@ class BeatmapService(
         dataSource.insertMany(convertedBeatmaps)
     }
 
+    fun updateBeatmap(osuId: String, gamemodes: Map<Gamemode, BeatmapGamemode>) {
+        val databaseBeatmap = dataSource.findById(osuId) ?: return
+        val databaseGamemodes = databaseBeatmap.gamemodes
+        val mergedGamemodes = mergeGamemodes(databaseGamemodes, gamemodes)
+        dataSource.updateBeatmapGamemodes(databaseBeatmap.osuId, mergedGamemodes)
+    }
+
     private fun convertLegacyBeatmapToBeatmap(legacyBeatmap: LegacyBeatmap): Beatmap? {
         // Don't convert if the beatmap had a user which could not be found (e.g. restricted person)
         val nominatorOne = legacyBeatmap.nominators.getOrNull(0)?.toString()?.takeIf { it != "0" }
@@ -172,10 +188,40 @@ class BeatmapService(
         }.toMap()
     }
 
-    fun updateBeatmap(osuId: String, gamemodes: Map<Gamemode, BeatmapGamemode>) {
-        val databaseBeatmap = dataSource.findById(osuId) ?: return
-        val databaseGamemodes = databaseBeatmap.gamemodes
-        val mergedGamemodes = mergeGamemodes(databaseGamemodes, gamemodes)
-        dataSource.updateBeatmapGamemodes(databaseBeatmap.osuId, mergedGamemodes)
+    private fun Beatmap.toExposedBeatmap(osuApiToken: String): ExposedBeatmap? {
+        val mapper = userService.findUserFromId(osuApiToken, mapperId) ?: return null
+        val preparedGamemodes = gamemodes.values.map { entry ->
+            val gamemodeNominators = entry.nominators.mapNotNull {
+                val nominatorUser = userService.findUserFromId(osuApiToken, it.nominatorId)
+
+                if (nominatorUser != null) {
+                    ExposedBeatmapNominator(
+                        nominator = nominatorUser,
+                        hasNominated = it.hasNominated
+                    )
+                } else {
+                    null
+                }
+            }
+
+            ExposedBeatmapGamemode(
+                gamemode = entry.gamemode,
+                nominators = gamemodeNominators,
+                isReady = entry.isReady
+            )
+        }
+
+        return ExposedBeatmap(
+            osuId = this.osuId,
+            artist = artist,
+            title = title,
+            note = note,
+            mapper = mapper,
+            status = status,
+            gamemodes = preparedGamemodes,
+            dateAdded = dateAdded,
+            dateUpdated = dateUpdated,
+            dateRanked = dateRanked
+        )
     }
 }

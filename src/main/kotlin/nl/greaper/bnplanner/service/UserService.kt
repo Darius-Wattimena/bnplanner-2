@@ -19,9 +19,9 @@ class UserService(
         return User(
             osuId = osuUser.id,
             username = osuUser.username,
-            gamemodes = osuUser.groups.mapNotNull { osuGroup ->
+            gamemodes = osuUser.groups?.mapNotNull { osuGroup ->
                 if (MeGroup.SupportedGroups.contains(osuGroup.id)) {
-                    osuGroup.playmodes.map { playmode ->
+                    osuGroup.playmodes?.map { playmode ->
                         UserGamemode(
                             gamemode = Gamemode.valueOf(playmode),
                             role = Role.fromOsuId(osuGroup.id)
@@ -31,7 +31,7 @@ class UserService(
                     // Unsupported usergroup
                     null
                 }
-            }.flatten()
+            }?.flatten() ?: emptyList()
         )
     }
 
