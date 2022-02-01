@@ -1,6 +1,7 @@
 package nl.greaper.bnplanner.controller
 
 import nl.greaper.bnplanner.auth.RolePermission
+import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
@@ -78,7 +79,7 @@ class BeatmapController(
     @RolesAllowed(RolePermission.EDITOR)
     fun updateBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestBody gamemodes: List<BeatmapGamemode>,
+        @RequestBody gamemodes: Map<Gamemode, BeatmapGamemode>,
         @PathVariable("id") id: String
     ) {
         service.updateBeatmap(id, gamemodes)

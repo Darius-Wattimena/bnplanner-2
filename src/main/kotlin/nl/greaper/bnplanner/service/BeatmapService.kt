@@ -66,7 +66,7 @@ class BeatmapService(
         val preparedBeatmapGamemodes = newBeatmap.gamemodes.map {
             BeatmapGamemode(
                 gamemode = it,
-                nominators = emptyList(),
+                nominators = emptySet(),
                 isReady = false
             )
         }.associateBy { it.gamemode }
@@ -136,7 +136,7 @@ class BeatmapService(
 
         val catchGamemode = BeatmapGamemode(
             gamemode = Gamemode.fruits,
-            nominators = listOfNotNull(
+            nominators = setOfNotNull(
                 nominatorOne?.let { BeatmapNominator(it, legacyBeatmap.nominatedByBNOne) },
                 nominatorTwo?.let { BeatmapNominator(it, legacyBeatmap.nominatedByBNTwo) },
             ),
@@ -157,10 +157,25 @@ class BeatmapService(
         )
     }
 
-    fun updateBeatmap(osuId: String, gamemodes: List<BeatmapGamemode>) {
-        val databaseBeatmap = dataSource.findById(osuId) ?: return
+    private fun mergeGamemodes(oldMap: Map<Gamemode, BeatmapGamemode>, newMap: Map<Gamemode, BeatmapGamemode>): Map<Gamemode, BeatmapGamemode> {
+        return Gamemode.values().mapNotNull { existingGamemode ->
+            val oldGamemode = oldMap[existingGamemode]
+            val newGamemode = newMap[existingGamemode]
 
-        
-        // TODO merge gamemodes, what if 2 updates happen at the same time?
+            if (newGamemode != null) {
+                existingGamemode to newGamemode
+            } else if (oldGamemode != null) {
+                existingGamemode to oldGamemode
+            } else {
+                null
+            }
+        }.toMap()
+    }
+
+    fun updateBeatmap(osuId: String, gamemodes: Map<Gamemode, BeatmapGamemode>) {
+        val databaseBeatmap = dataSource.findById(osuId) ?: return
+        val databaseGamemodes = databaseBeatmap.gamemodes
+        val mergedGamemodes = mergeGamemodes(databaseGamemodes, gamemodes)
+        dataSource.updateBeatmapGamemodes(databaseBeatmap.osuId, mergedGamemodes)
     }
 }
