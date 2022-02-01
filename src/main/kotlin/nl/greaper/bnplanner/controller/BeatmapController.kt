@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.controller
 
+import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Beatmap
 import nl.greaper.bnplanner.model.BeatmapPage
 import nl.greaper.bnplanner.model.BeatmapStatus
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.annotation.security.RolesAllowed
 
 @RestController
 @RequestMapping("/v2/beatmaps")
@@ -19,6 +21,7 @@ class BeatmapController(
     val service: BeatmapService
 ) {
     @PostMapping("/import")
+    @RolesAllowed(RolePermission.DEVELOPER)
     fun importBeatmaps(@RequestBody body: List<LegacyBeatmap>) {
         service.importLegacyBeatmaps(body)
     }
