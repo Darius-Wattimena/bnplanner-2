@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import nl.greaper.bnplanner.config.OsuConfig
+import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
 import nl.greaper.bnplanner.model.osu.OsuOAuth
 import org.springframework.http.*
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.postForEntity
 
 
 @Component
@@ -33,7 +35,7 @@ class OsuHttpClient(
     /**
      * Get a token from the osu server
      */
-    fun getToken(code: String): ResponseEntity<String> {
+    fun getToken(code: String): ResponseEntity<AuthToken> {
         val osuOAuth = OsuOAuth(
                 config.clientId.toInt(),
                 config.clientSecret,
@@ -45,7 +47,7 @@ class OsuHttpClient(
         val body = objectMapper.writeValueAsString(osuOAuth)
         val request = HttpEntity(body, authHeaders)
 
-        return authRest.postForEntity(tokenUri, request, String::class.java)
+        return authRest.postForEntity(tokenUri, request)
     }
 
     fun get(uri: String, osuApiToken: String) : ResponseEntity<String> {

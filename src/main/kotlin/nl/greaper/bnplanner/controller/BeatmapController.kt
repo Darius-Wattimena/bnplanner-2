@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.annotation.security.RolesAllowed
 
 @RestController
-@RequestMapping("/v2/beatmaps")
+@RequestMapping("/v2/beatmap")
 class BeatmapController(
     val service: BeatmapService
 ) {
@@ -49,10 +49,17 @@ class BeatmapController(
         @RequestParam(required = false) artist: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
-        @RequestParam(required = false) status: Set<BeatmapStatus> = emptySet(),
-        @RequestParam(required = false) nominators: Set<String> = emptySet()
+        @RequestParam(required = false) status: Set<BeatmapStatus>?,
+        @RequestParam(required = false) nominators: Set<String>?
     ): Int {
-        return service.countBeatmaps(artist, title, mapper, status, nominators, page)
+        return service.countBeatmaps(
+            artist = artist,
+            title = title,
+            mapper = mapper,
+            status = status ?: emptySet(),
+            nominators = nominators ?: emptySet(),
+            page = page
+        )
     }
 
     @GetMapping("/find")
@@ -69,15 +76,15 @@ class BeatmapController(
         @RequestParam(required = false) nominators: Set<String>?
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
-            osuApiToken,
-            artist,
-            title,
-            mapper,
-            status ?: emptySet(),
-            nominators ?: emptySet(),
-            page,
-            from,
-            to
+            osuApiToken = osuApiToken,
+            artist = artist,
+            title = title,
+            mapper = mapper,
+            status = status ?: emptySet(),
+            nominators = nominators ?: emptySet(),
+            page = page,
+            from = from,
+            to = to
         )
     }
 

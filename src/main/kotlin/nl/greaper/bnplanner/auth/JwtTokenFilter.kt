@@ -1,12 +1,8 @@
 package nl.greaper.bnplanner.auth
 
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Header
-import io.jsonwebtoken.Jwt
-import io.jsonwebtoken.Jwts
-import nl.greaper.bnplanner.config.OsuConfig
 import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.service.UserService
+import nl.greaper.bnplanner.util.parseJwtToken
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -97,29 +93,5 @@ class JwtTokenFilter(
         }
 
         return RolePermission(osuRole, permissions)
-    }
-
-
-    private fun test(token: String) {
-    }
-
-    private fun parseJwtToken(token: String): Claims? {
-        return try {
-            val i = token.lastIndexOf('.')
-            val withoutSignature = token.substring(0, i + 1)
-
-            val untrusted = Jwts.parser().parseClaimsJwt(withoutSignature)
-
-            return untrusted.body
-
-            /*val splitToken = token.split(".")
-            val unsignedToken = splitToken[0] + "." + splitToken[1] + "."
-
-            val parsedToken = Jwts.parserBuilder().build().parseClaimsJws(unsignedToken)
-            parsedToken.body*/
-        } catch (ex: Throwable) {
-            null
-        }
-
     }
 }

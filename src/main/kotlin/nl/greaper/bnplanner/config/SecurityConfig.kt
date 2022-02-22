@@ -38,6 +38,7 @@ class SecurityConfig(
             .and()
 
         http.authorizeRequests()
+            .antMatchers("/v2/auth").permitAll()
             .anyRequest().authenticated()
             .and()
 
@@ -45,24 +46,6 @@ class SecurityConfig(
             tokenFilter,
             UsernamePasswordAuthenticationFilter::class.java
         )
-
-        /*val configuration = http.csrf().disable()
-            .cors()
-            .and()
-            .exceptionHandling()
-            .authenticationEntryPoint { request: HttpServletRequest?, response: HttpServletResponse, ex: AuthenticationException ->
-                response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    ex.message
-                )
-            }
-            .and()
-
-        http.authorizeRequests()
-            .anyRequest().authenticated()
-
-        configuration.addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
-        configuration.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)*/
     }
 
     @Bean
