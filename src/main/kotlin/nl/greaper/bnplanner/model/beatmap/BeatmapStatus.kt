@@ -16,9 +16,9 @@ enum class BeatmapStatus {
             return when (legacyStatus) {
                 1L -> Qualified
                 2L -> Bubbled
-                3L -> Pending
+                3L -> Disqualified
                 4L -> Popped
-                5L -> Disqualified
+                5L -> Pending
                 6L -> Ranked
                 7L -> Graved
                 8L -> Unfinished
