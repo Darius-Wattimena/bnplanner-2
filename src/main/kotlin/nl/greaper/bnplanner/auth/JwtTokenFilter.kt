@@ -2,6 +2,9 @@ package nl.greaper.bnplanner.auth
 
 import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.service.UserService
+import nl.greaper.bnplanner.util.getHighestRole
+import nl.greaper.bnplanner.util.getHighestRoleForUser
+import nl.greaper.bnplanner.util.getRolePermissions
 import nl.greaper.bnplanner.util.parseJwtToken
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -54,17 +57,7 @@ class JwtTokenFilter(
             return
         }
 
-        val permission = if (user.osuId == "2369776") {
-            RolePermission(
-                Role.NominationAssessment,
-                setOf(RolePermission.DEVELOPER, RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
-            )
-        } else {
-            val userRoles = user.gamemodes.map { it.role }.toSet()
-            val userRole = getHighestRole(userRoles)
-
-            getRolePermissions(userRole)
-        }
+        val permission = getHighestRoleForUser(user)
 
         val authentication = UsernamePasswordAuthenticationToken(
             permission, token, permission.roles.map { SimpleGrantedAuthority("ROLE_$it") }
@@ -73,25 +66,5 @@ class JwtTokenFilter(
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
         SecurityContextHolder.getContext().authentication = authentication
         chain.doFilter(request, response)
-    }
-
-    private fun getHighestRole(osuRoles: Set<Role>): Role {
-        return when {
-            Role.NominationAssessment in osuRoles -> Role.NominationAssessment
-            Role.Nominator in osuRoles -> Role.Nominator
-            Role.Probation in osuRoles -> Role.Probation
-            Role.Loved in osuRoles -> Role.Loved
-            else -> Role.Mapper
-        }
-    }
-
-    private fun getRolePermissions(osuRole: Role): RolePermission {
-        val permissions = when (osuRole) {
-            Role.Mapper, Role.Loved -> setOf(RolePermission.VIEWER)
-            Role.Nominator, Role.Probation -> setOf(RolePermission.VIEWER, RolePermission.EDITOR)
-            Role.NominationAssessment -> setOf(RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
-        }
-
-        return RolePermission(osuRole, permissions)
     }
 }

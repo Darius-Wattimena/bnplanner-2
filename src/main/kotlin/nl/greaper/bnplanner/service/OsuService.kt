@@ -1,8 +1,13 @@
 package nl.greaper.bnplanner.service
 
+import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.client.OsuHttpClient
+import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.UserContext
 import nl.greaper.bnplanner.model.osu.AuthToken
+import nl.greaper.bnplanner.util.getHighestRole
+import nl.greaper.bnplanner.util.getHighestRoleForUser
+import nl.greaper.bnplanner.util.getRolePermissions
 import nl.greaper.bnplanner.util.parseJwtToken
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -35,6 +40,6 @@ class OsuService(
         val osuId = claims.subject
         val user = userService.findUserFromId(token.access_token, osuId)
 
-        return UserContext(user, token.access_token, token.refresh_token, tokenExpires.toEpochMilli())
+        return UserContext(user, token.access_token, token.refresh_token, tokenExpires.toEpochMilli(), getHighestRoleForUser(user))
     }
 }

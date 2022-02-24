@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.service
 
+import mu.KotlinLogging
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.beatmap.Beatmap
@@ -31,6 +32,8 @@ class BeatmapService(
     private val userService: UserService,
     private val osuHttpClient: OsuHttpClient
 ) {
+    val log = KotlinLogging.logger {  }
+
     fun findBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
         return dataSource.findById(id)?.toExposedBeatmap(osuApiToken)
     }
@@ -114,6 +117,28 @@ class BeatmapService(
             filters += Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId `in` nominators
         }
 
+        val parsedStatus = status.mapNotNull {
+            when (page) {
+                BeatmapPage.PENDING -> {
+                    if (it == BeatmapStatus.Ranked || it == BeatmapStatus.Graved) {
+                        return@mapNotNull null
+                    }
+                }
+                BeatmapPage.RANKED -> {
+                    if (it != BeatmapStatus.Ranked) {
+                        return@mapNotNull null
+                    }
+                }
+                BeatmapPage.GRAVEYARD -> {
+                    if (it != BeatmapStatus.Graved) {
+                        return@mapNotNull null
+                    }
+                }
+            }
+
+            it
+        }
+
         filters += if (status.isNotEmpty()) {
             or(status.map { Beatmap::status eq it })
         } else {
@@ -148,7 +173,7 @@ class BeatmapService(
         val nominatorTwo = legacyBeatmap.nominators.getOrNull(1)?.toString()?.takeIf { it != "0" }
 
         // This should never happen
-        val beatmapStatus = BeatmapStatus.fromLegacyStatus(legacyBeatmap.status) ?: return null
+        val beatmapStatus = BeatmapStatus.fromPriorityStatus(legacyBeatmap.status.toInt()) ?: return null
 
         val catchGamemode = BeatmapGamemode(
             gamemode = Gamemode.fruits,
@@ -159,8 +184,13 @@ class BeatmapService(
             isReady = legacyBeatmap.nominatedByBNOne || legacyBeatmap.nominatedByBNTwo
         )
 
+        if (legacyBeatmap._id == 0L) {
+            log.info{ "Found a beatmap with Id 0? ${legacyBeatmap.artist} - ${legacyBeatmap.title} by ${legacyBeatmap.mapper}"  }
+        }
+
+        // TODO instead of using the legacy data, retrieve the beatmap from the osu api
         return Beatmap(
-            osuId = legacyBeatmap.osuId.toString(),
+            osuId = legacyBeatmap._id.toString(),
             artist = legacyBeatmap.artist,
             title = legacyBeatmap.title,
             note = legacyBeatmap.note,

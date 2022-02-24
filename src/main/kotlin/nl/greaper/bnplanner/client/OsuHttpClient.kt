@@ -8,6 +8,7 @@ import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
 import nl.greaper.bnplanner.model.osu.OsuOAuth
+import nl.greaper.bnplanner.util.shouldSkipUser
 import org.springframework.http.*
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -65,6 +66,10 @@ class OsuHttpClient(
     }
 
     fun findUserWithId(osuApiToken: String, osuId: String): Me? {
+        if (shouldSkipUser(osuId)) {
+            return null
+        }
+
         return try {
             val response = get("/users/$osuId?key=id", osuApiToken)
             return response.body?.let { objectMapper.readValue<Me>(it) }

@@ -4,7 +4,7 @@ import org.bson.codecs.pojo.annotations.BsonId
 
 data class LegacyBeatmap(
     @BsonId
-    val osuId: Long,
+    val _id: Long,
     val artist: String,
     val title: String,
     val note: String,
