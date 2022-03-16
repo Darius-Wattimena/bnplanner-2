@@ -8,6 +8,7 @@ import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
 import nl.greaper.bnplanner.model.osu.OsuOAuth
+import nl.greaper.bnplanner.util.shouldSkipUser
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -25,7 +26,10 @@ class OsuHttpClient(
     val log = KotlinLogging.logger { }
 
     private val rest = RestTemplate()
+    private val authRest = RestTemplate()
+    private val headers = HttpHeaders()
     private val authHeaders = HttpHeaders()
+    private val tokenUri = "https://osu.ppy.sh/oauth/token"
 
     init {
         authHeaders.contentType = MediaType.APPLICATION_JSON
@@ -47,7 +51,7 @@ class OsuHttpClient(
         val body = objectMapper.writeValueAsString(osuOAuth)
         val request = HttpEntity(body, authHeaders)
 
-        return rest.postForEntity("https://osu.ppy.sh/oauth/token", request)
+        return authRest.postForEntity(tokenUri, request)
     }
 
     fun get(uri: String, osuApiToken: String): ResponseEntity<String> {
@@ -65,6 +69,10 @@ class OsuHttpClient(
     }
 
     fun findUserWithId(osuApiToken: String, osuId: String): Me? {
+        if (shouldSkipUser(osuId)) {
+            return null
+        }
+
         return try {
             val response = get("/users/$osuId?key=id", osuApiToken)
             return response.body?.let { objectMapper.readValue<Me>(it) }
@@ -75,8 +83,8 @@ class OsuHttpClient(
     }
 
     private fun request(uri: String, method: HttpMethod, authToken: String, body: String = ""): ResponseEntity<String> {
-        val headers = HttpHeaders()
-        headers.set(HttpHeaders.AUTHORIZATION, authToken)
+        headers.remove(HttpHeaders.AUTHORIZATION)
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer $authToken")
 
         val request = if (body == "") {
             HttpEntity(headers)

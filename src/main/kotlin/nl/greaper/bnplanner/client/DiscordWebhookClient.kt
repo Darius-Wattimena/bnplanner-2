@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.postForEntity
 import java.time.Instant
 
 @Component
@@ -55,11 +56,14 @@ class DiscordWebhookClient(
         if (!confidential) {
             // Public catch mapping hub feed with only the most informative messages
             val moddingServerWebhookUrl = config.webhookPublic
-            rest.exchange(moddingServerWebhookUrl, HttpMethod.POST, request, String::class.java)
+
+            if (moddingServerWebhookUrl.isNotBlank()) {
+                rest.postForEntity<String>(moddingServerWebhookUrl, request)
+            }
         }
 
         if (webhookUrl.isNotBlank()) {
-            rest.exchange(webhookUrl, HttpMethod.POST, request, String::class.java)
+            rest.postForEntity<String>(webhookUrl, request)
         }
     }
 }

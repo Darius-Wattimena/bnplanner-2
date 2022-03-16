@@ -55,7 +55,7 @@ class UserService(
 
                 discordClient.send(
                     "Could not find user with id $osuId, created restricted user",
-                    EmbedColor.BLUE,
+                    EmbedColor.ORANGE,
                     EmbedThumbnail("https://a.ppy.sh/$osuId"),
                     EmbedFooter("Nomination Planner"),
                 )
@@ -66,6 +66,14 @@ class UserService(
             val newUser = convertOsuUserToUser(osuUser)
 
             dataSource.saveUser(newUser)
+
+            discordClient.send(
+                "Created user $osuId, with username: ${newUser.username}",
+                EmbedColor.BLUE,
+                EmbedThumbnail("https://a.ppy.sh/$osuId"),
+                EmbedFooter("Nomination Planner"),
+            )
+
             return newUser
         } else {
             return databaseUser
