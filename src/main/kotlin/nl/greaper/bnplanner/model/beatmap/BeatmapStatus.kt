@@ -11,8 +11,7 @@ enum class BeatmapStatus {
     Unfinished;
 
     companion object {
-        fun fromPriorityStatus(prio: Int): BeatmapStatus?
-        {
+        fun fromPriorityStatus(prio: Int): BeatmapStatus? {
             return when (prio) {
                 1 -> Qualified
                 2 -> Bubbled

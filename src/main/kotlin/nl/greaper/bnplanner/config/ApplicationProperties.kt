@@ -29,3 +29,10 @@ data class CorsConfig(
     val methods: String,
     val headers: String
 )
+
+@ConstructorBinding
+@ConfigurationProperties("discord")
+data class DiscordConfig(
+    val webhook: String,
+    val webhookPublic: String
+)

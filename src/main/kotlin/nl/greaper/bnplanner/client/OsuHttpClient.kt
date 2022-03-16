@@ -8,25 +8,24 @@ import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
 import nl.greaper.bnplanner.model.osu.OsuOAuth
-import nl.greaper.bnplanner.util.shouldSkipUser
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
-
 
 @Component
 class OsuHttpClient(
     val config: OsuConfig,
     val objectMapper: ObjectMapper
 ) {
-    val log = KotlinLogging.logger {  }
+    val log = KotlinLogging.logger { }
 
     private val rest = RestTemplate()
-    private val authRest = RestTemplate()
-    private val headers = HttpHeaders()
     private val authHeaders = HttpHeaders()
-    private val tokenUri = "https://osu.ppy.sh/oauth/token"
 
     init {
         authHeaders.contentType = MediaType.APPLICATION_JSON
@@ -38,20 +37,20 @@ class OsuHttpClient(
      */
     fun getToken(code: String): ResponseEntity<AuthToken> {
         val osuOAuth = OsuOAuth(
-                config.clientId.toInt(),
-                config.clientSecret,
-                code,
-                "authorization_code",
-                config.redirectUri
+            config.clientId.toInt(),
+            config.clientSecret,
+            code,
+            "authorization_code",
+            config.redirectUri
         )
 
         val body = objectMapper.writeValueAsString(osuOAuth)
         val request = HttpEntity(body, authHeaders)
 
-        return authRest.postForEntity(tokenUri, request)
+        return rest.postForEntity("https://osu.ppy.sh/oauth/token", request)
     }
 
-    fun get(uri: String, osuApiToken: String) : ResponseEntity<String> {
+    fun get(uri: String, osuApiToken: String): ResponseEntity<String> {
         return request(uri, HttpMethod.GET, osuApiToken)
     }
 
@@ -66,10 +65,6 @@ class OsuHttpClient(
     }
 
     fun findUserWithId(osuApiToken: String, osuId: String): Me? {
-        if (shouldSkipUser(osuId)) {
-            return null
-        }
-
         return try {
             val response = get("/users/$osuId?key=id", osuApiToken)
             return response.body?.let { objectMapper.readValue<Me>(it) }
@@ -79,8 +74,8 @@ class OsuHttpClient(
         }
     }
 
-    private fun request(uri: String, method: HttpMethod, authToken: String, body: String = "") : ResponseEntity<String> {
-        headers.remove(HttpHeaders.AUTHORIZATION)
+    private fun request(uri: String, method: HttpMethod, authToken: String, body: String = ""): ResponseEntity<String> {
+        val headers = HttpHeaders()
         headers.set(HttpHeaders.AUTHORIZATION, authToken)
 
         val request = if (body == "") {

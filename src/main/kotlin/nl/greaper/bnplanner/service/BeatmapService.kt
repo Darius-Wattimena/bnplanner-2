@@ -3,12 +3,13 @@ package nl.greaper.bnplanner.service
 import mu.KotlinLogging
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
+import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.Beatmap
+import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapNominator
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
-import nl.greaper.bnplanner.model.Gamemode
-import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
+import nl.greaper.bnplanner.model.beatmap.BeatmapStatus.Companion.toPriorityStatus
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmap
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapNominator
@@ -16,11 +17,11 @@ import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
-import org.litote.kmongo.`in`
 import org.litote.kmongo.and
+import org.litote.kmongo.bson
 import org.litote.kmongo.div
 import org.litote.kmongo.eq
-import org.litote.kmongo.ne
+import org.litote.kmongo.`in`
 import org.litote.kmongo.or
 import org.litote.kmongo.regex
 import org.springframework.stereotype.Service
@@ -32,7 +33,7 @@ class BeatmapService(
     private val userService: UserService,
     private val osuHttpClient: OsuHttpClient
 ) {
-    val log = KotlinLogging.logger {  }
+    val log = KotlinLogging.logger { }
 
     fun findBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
         return dataSource.findById(id)?.toExposedBeatmap(osuApiToken)
@@ -121,34 +122,36 @@ class BeatmapService(
             when (page) {
                 BeatmapPage.PENDING -> {
                     if (it == BeatmapStatus.Ranked || it == BeatmapStatus.Graved) {
-                        return@mapNotNull null
-                    }
+                        null
+                    } else it
                 }
                 BeatmapPage.RANKED -> {
                     if (it != BeatmapStatus.Ranked) {
-                        return@mapNotNull null
-                    }
+                        null
+                    } else it
                 }
                 BeatmapPage.GRAVEYARD -> {
                     if (it != BeatmapStatus.Graved) {
-                        return@mapNotNull null
-                    }
+                        null
+                    } else it
                 }
             }
-
-            it
         }
 
-        filters += if (status.isNotEmpty()) {
-            or(status.map { Beatmap::status eq it })
+        filters += if (parsedStatus.isNotEmpty()) {
+            or(
+                status.map {
+                    "{ status : ${it.toPriorityStatus()} }  ".bson
+                }
+            )
         } else {
             when (page) {
                 BeatmapPage.PENDING -> and(
-                    Beatmap::status ne BeatmapStatus.Ranked,
-                    Beatmap::status ne BeatmapStatus.Graved
+                    "{ status : { \$ne : ${BeatmapStatus.Ranked.toPriorityStatus()} } }".bson,
+                    "{ status : { \$ne : ${BeatmapStatus.Graved.toPriorityStatus()} } }".bson,
                 )
-                BeatmapPage.RANKED -> Beatmap::status eq BeatmapStatus.Ranked
-                BeatmapPage.GRAVEYARD -> Beatmap::status eq BeatmapStatus.Graved
+                BeatmapPage.RANKED -> "{ status : ${BeatmapStatus.Ranked.toPriorityStatus()} }".bson
+                BeatmapPage.GRAVEYARD -> "{ status : ${BeatmapStatus.Graved.toPriorityStatus()} }".bson
             }
         }
 
@@ -185,7 +188,7 @@ class BeatmapService(
         )
 
         if (legacyBeatmap._id == 0L) {
-            log.info{ "Found a beatmap with Id 0? ${legacyBeatmap.artist} - ${legacyBeatmap.title} by ${legacyBeatmap.mapper}"  }
+            log.info { "Found a beatmap with Id 0? ${legacyBeatmap.artist} - ${legacyBeatmap.title} by ${legacyBeatmap.mapper}" }
         }
 
         // TODO instead of using the legacy data, retrieve the beatmap from the osu api

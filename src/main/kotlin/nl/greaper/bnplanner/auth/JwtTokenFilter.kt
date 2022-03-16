@@ -1,10 +1,7 @@
 package nl.greaper.bnplanner.auth
 
-import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.service.UserService
-import nl.greaper.bnplanner.util.getHighestRole
 import nl.greaper.bnplanner.util.getHighestRoleForUser
-import nl.greaper.bnplanner.util.getRolePermissions
 import nl.greaper.bnplanner.util.parseJwtToken
 import org.springframework.http.HttpHeaders.AUTHORIZATION
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -16,7 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-
 
 @Component
 class JwtTokenFilter(

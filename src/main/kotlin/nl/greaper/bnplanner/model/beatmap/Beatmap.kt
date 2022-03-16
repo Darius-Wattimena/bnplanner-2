@@ -35,4 +35,3 @@ data class BeatmapNominator(
     val nominatorId: String,
     val hasNominated: Boolean
 )
-

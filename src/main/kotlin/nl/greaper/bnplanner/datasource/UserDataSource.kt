@@ -8,7 +8,7 @@ import org.litote.kmongo.save
 import org.springframework.stereotype.Component
 
 @Component
-class UserDataSource(private val database: MongoDatabase): BaseDataSource<User>() {
+class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>() {
     override fun initCollection(): MongoCollection<User> {
         return database.getCollection<User>("users")
     }

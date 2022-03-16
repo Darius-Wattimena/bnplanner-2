@@ -5,7 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 
-
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableGlobalMethodSecurity(jsr250Enabled = true)

@@ -6,7 +6,8 @@ data class User(
     @BsonId
     val osuId: String,
     val username: String,
-    val gamemodes: List<UserGamemode>
+    val gamemodes: List<UserGamemode>,
+    val restricted: Boolean? = null
 )
 
 data class UserGamemode(

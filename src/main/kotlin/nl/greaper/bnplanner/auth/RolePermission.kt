@@ -7,7 +7,7 @@ import java.security.Principal
 data class RolePermission(
     val osuRole: Role,
     val roles: Set<String>
-): Principal {
+) : Principal {
     @JsonIgnore
     override fun getName(): String = osuRole.name
 

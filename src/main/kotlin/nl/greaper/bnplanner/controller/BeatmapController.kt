@@ -2,7 +2,6 @@ package nl.greaper.bnplanner.controller
 
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Gamemode
-import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
@@ -32,7 +31,7 @@ class BeatmapController(
     fun importBeatmaps(@RequestBody body: List<LegacyBeatmap>) {
         service.importLegacyBeatmaps(body)
     }
-    
+
     @GetMapping("/{id}")
     @RolesAllowed(RolePermission.VIEWER)
     fun findBeatmap(

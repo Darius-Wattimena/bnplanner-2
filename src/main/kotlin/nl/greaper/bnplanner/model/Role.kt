@@ -11,7 +11,7 @@ enum class Role {
 
     companion object {
         fun fromOsuId(osuId: String): Role {
-            return when(osuId) {
+            return when (osuId) {
                 MeGroup.NAT -> NominationAssessment
                 MeGroup.BN -> Nominator
                 MeGroup.PBN -> Probation

@@ -6,9 +6,6 @@ import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import org.bson.conversions.Bson
-import org.litote.kmongo.and
-import org.litote.kmongo.ascending
-import org.litote.kmongo.descending
 import org.litote.kmongo.ensureIndex
 import org.litote.kmongo.eq
 import org.litote.kmongo.getCollection
@@ -17,7 +14,7 @@ import org.litote.kmongo.setTo
 import org.springframework.stereotype.Component
 
 @Component
-class BeatmapDataSource(private val database: MongoDatabase): BaseDataSource<Beatmap>() {
+class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Beatmap>() {
     override fun initCollection(): MongoCollection<Beatmap> {
         return database.getCollection<Beatmap>("beatmaps").also {
             it.ensureIndex(Beatmap::artist)
@@ -26,7 +23,6 @@ class BeatmapDataSource(private val database: MongoDatabase): BaseDataSource<Bea
             it.ensureIndex(Beatmap::status)
             it.ensureIndex(Beatmap::dateUpdated)
         }
-
     }
 
     fun updateBeatmapGamemodes(osuId: String, updatedGamemodes: Map<Gamemode, BeatmapGamemode>) {
