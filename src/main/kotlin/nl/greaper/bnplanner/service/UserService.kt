@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.service
 
+import mu.KotlinLogging
 import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.UserDataSource
@@ -20,6 +21,20 @@ class UserService(
     private val osuHttpClient: OsuHttpClient,
     private val discordClient: DiscordWebhookClient
 ) {
+    companion object {
+        const val MAX_USERS = 100
+    }
+
+    val log = KotlinLogging.logger { }
+
+    fun searchUser(username: String?, gamemodes: Set<Gamemode>?, roles: Set<Role>?): List<User> {
+        val searchResult = dataSource.searchUser(username, gamemodes ?: emptySet(), roles ?: emptySet())
+
+        log.info { "Found ${searchResult.size} users, taking max $MAX_USERS users." }
+
+        return searchResult.take(MAX_USERS)
+    }
+
     private fun convertOsuUserToUser(osuUser: Me): User {
         return User(
             osuId = osuUser.id,

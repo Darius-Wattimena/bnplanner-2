@@ -17,6 +17,11 @@ import org.springframework.stereotype.Component
 class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Beatmap>() {
     override fun initCollection(): MongoCollection<Beatmap> {
         return database.getCollection<Beatmap>("beatmaps").also {
+            it.ensureIndex(
+                Beatmap::dateUpdated,
+                Beatmap::status
+            )
+
             it.ensureIndex(Beatmap::artist)
             it.ensureIndex(Beatmap::title)
             it.ensureIndex(Beatmap::mapperId)

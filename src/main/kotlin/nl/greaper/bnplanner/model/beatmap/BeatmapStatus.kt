@@ -25,7 +25,7 @@ enum class BeatmapStatus {
             }
         }
 
-        fun BeatmapStatus.toPriorityStatus(): Int? {
+        fun BeatmapStatus.toPriorityStatus(): Int {
             return when (this) {
                 Qualified -> 1
                 Bubbled -> 2
@@ -35,7 +35,6 @@ enum class BeatmapStatus {
                 Ranked -> 6
                 Graved -> 7
                 Unfinished -> 8
-                else -> null
             }
         }
     }
