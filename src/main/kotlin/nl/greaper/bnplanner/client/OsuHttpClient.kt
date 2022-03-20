@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import nl.greaper.bnplanner.config.OsuConfig
-import nl.greaper.bnplanner.model.osu.AuthToken
-import nl.greaper.bnplanner.model.osu.BeatmapSet
-import nl.greaper.bnplanner.model.osu.Me
-import nl.greaper.bnplanner.model.osu.OsuOAuth
+import nl.greaper.bnplanner.model.osu.*
+import nl.greaper.bnplanner.util.parseJwtToken
 import nl.greaper.bnplanner.util.shouldSkipUser
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -17,6 +15,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 @Component
 class OsuHttpClient(
@@ -41,14 +41,28 @@ class OsuHttpClient(
      */
     fun getToken(code: String): ResponseEntity<AuthToken> {
         val osuOAuth = OsuOAuth(
-            config.clientId.toInt(),
-            config.clientSecret,
-            code,
-            "authorization_code",
-            config.redirectUri
+            client_id = config.clientId.toInt(),
+            client_secret = config.clientSecret,
+            code = code,
+            grant_type = "authorization_code",
+            redirect_uri = config.redirectUri
         )
 
         val body = objectMapper.writeValueAsString(osuOAuth)
+        val request = HttpEntity(body, authHeaders)
+
+        return authRest.postForEntity(tokenUri, request)
+    }
+
+    fun refreshToken(refreshToken: String): ResponseEntity<AuthToken> {
+        val preparedRefreshToken = RefreshToken(
+            grant_type = "refresh_token",
+            client_id = config.clientId.toInt(),
+            client_secret = config.clientSecret,
+            refresh_token = refreshToken,
+        )
+
+        val body = objectMapper.writeValueAsString(preparedRefreshToken)
         val request = HttpEntity(body, authHeaders)
 
         return authRest.postForEntity(tokenUri, request)

@@ -1,6 +1,8 @@
 package nl.greaper.bnplanner.service
 
+import mu.KotlinLogging
 import nl.greaper.bnplanner.client.OsuHttpClient
+import nl.greaper.bnplanner.datasource.OsuTokenDataSource
 import nl.greaper.bnplanner.model.UserContext
 import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.util.getHighestRoleForUser
@@ -12,8 +14,11 @@ import java.time.temporal.ChronoUnit
 @Service
 class OsuService(
     private val client: OsuHttpClient,
-    private val userService: UserService
+    private val userService: UserService,
+    private val osuTokenDataSource: OsuTokenDataSource
 ) {
+    val log = KotlinLogging.logger { }
+
     fun getToken(code: String): AuthToken {
         val parsedToken = code.dropLast(1) // Somehow frontend always sends a trailing '='
 
@@ -25,6 +30,28 @@ class OsuService(
         check(response.statusCode.is2xxSuccessful && body != null) { "Couldn't get token from osu" }
 
         return body
+    }
+
+    fun getValidToken(token: String, refreshToken: String): String? {
+        val claims = parseJwtToken(token)
+        val exp = (claims?.get("exp") as? Double)?.toLong()
+
+        if (exp != null) {
+            val actualExpire = Instant.ofEpochSecond(exp).minus(5, ChronoUnit.MINUTES)
+            val isExpired = actualExpire.isBefore(Instant.now())
+
+            if (isExpired) {
+                val refreshedApiToken = client.refreshToken(refreshToken).body ?: return null
+                osuTokenDataSource.deleteMany()
+                osuTokenDataSource.insertOne(refreshedApiToken)
+
+                return refreshedApiToken.access_token
+            } else {
+                return token
+            }
+        }
+
+        return null
     }
 
     fun getUserContextByToken(token: AuthToken): UserContext? {

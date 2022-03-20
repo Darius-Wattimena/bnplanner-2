@@ -4,10 +4,8 @@ import mu.KotlinLogging
 import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.UserDataSource
-import nl.greaper.bnplanner.model.Gamemode
-import nl.greaper.bnplanner.model.Role
-import nl.greaper.bnplanner.model.User
-import nl.greaper.bnplanner.model.UserGamemode
+import nl.greaper.bnplanner.datasource.UserRecalculateDataSource
+import nl.greaper.bnplanner.model.*
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Service
 @Service
 class UserService(
     private val dataSource: UserDataSource,
+    private val recalculateDataSource: UserRecalculateDataSource,
     private val osuHttpClient: OsuHttpClient,
     private val discordClient: DiscordWebhookClient
 ) {
@@ -55,43 +54,48 @@ class UserService(
         )
     }
 
-    fun findUserFromId(osuApiToken: String, osuId: String): User? {
-        if (osuId == "0" || osuId == "-1" || osuId == "-2") return null
+    fun createTemporaryUser(osuId: String): User {
+        val tempUser = User(osuId, osuId, emptyList())
+        recalculateDataSource.insertOne(UserRecalculate(osuId))
+        dataSource.saveUser(tempUser)
+        return tempUser
+    }
 
-        val databaseUser = dataSource.findUser(osuId)
+    fun forceFindUserFromId(osuApiToken: String, osuId: String): User? {
+        val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
 
-        if (databaseUser == null) {
-            val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
+        if (osuUser == null) {
+            // Should only end up here if the user is restricted or the provided id is invalid
+            val restrictedUser = User(osuId, "RESTRICTED", emptyList(), restricted = true)
+            dataSource.saveUser(restrictedUser)
 
-            if (osuUser == null) {
-                // Should only end up here if the user is restricted or the provided id is invalid
-                val restrictedUser = User(osuId, "RESTRICTED", emptyList(), restricted = true)
-                dataSource.saveUser(restrictedUser)
-
-                discordClient.send(
+            discordClient.send(
                     "Could not find user with id $osuId, created restricted user",
                     EmbedColor.ORANGE,
                     EmbedThumbnail("https://a.ppy.sh/$osuId"),
                     EmbedFooter("Nomination Planner"),
-                )
+            )
 
-                return restrictedUser
-            }
+            return restrictedUser
+        }
 
-            val newUser = convertOsuUserToUser(osuUser)
+        val newUser = convertOsuUserToUser(osuUser)
 
-            dataSource.saveUser(newUser)
+        dataSource.saveUser(newUser)
 
-            discordClient.send(
+        discordClient.send(
                 "Created user $osuId, with username: ${newUser.username}",
                 EmbedColor.BLUE,
                 EmbedThumbnail("https://a.ppy.sh/$osuId"),
                 EmbedFooter("Nomination Planner"),
-            )
+        )
 
-            return newUser
-        } else {
-            return databaseUser
-        }
+        return newUser
+    }
+
+    fun findUserFromId(osuApiToken: String, osuId: String): User? {
+        if (osuId == "0" || osuId == "-1" || osuId == "-2") return null
+
+        return dataSource.findUser(osuId) ?: createTemporaryUser(osuId)
     }
 }
