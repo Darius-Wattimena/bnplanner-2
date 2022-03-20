@@ -21,7 +21,7 @@ class UserService(
     private val discordClient: DiscordWebhookClient
 ) {
     companion object {
-        const val MAX_USERS = 100
+        const val MAX_USERS = 20
     }
 
     val log = KotlinLogging.logger { }
@@ -31,7 +31,9 @@ class UserService(
 
         log.info { "Found ${searchResult.size} users, taking max $MAX_USERS users." }
 
-        return searchResult.take(MAX_USERS)
+        return searchResult
+            .sortedBy { it.username }
+            .take(MAX_USERS)
     }
 
     private fun convertOsuUserToUser(osuUser: Me): User {
