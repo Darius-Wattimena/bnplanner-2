@@ -9,6 +9,8 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.ensureIndex
 import org.litote.kmongo.eq
 import org.litote.kmongo.getCollection
+import org.litote.kmongo.replaceOneById
+import org.litote.kmongo.save
 import org.litote.kmongo.set
 import org.litote.kmongo.setTo
 import org.springframework.stereotype.Component
@@ -50,5 +52,12 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
         // findQuery.sort(and(ascending(Beatmap::status), descending(Beatmap::dateUpdated)))
 
         return findQuery.toMutableList()
+    }
+
+    fun update(updatedBeatmap: Beatmap) {
+        collection.replaceOneById(
+            updatedBeatmap.osuId,
+            updatedBeatmap
+        )
     }
 }

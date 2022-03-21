@@ -12,6 +12,7 @@ import nl.greaper.bnplanner.service.BeatmapService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -96,14 +97,16 @@ class BeatmapController(
         service.addBeatmap(osuApiToken, newBeatmap)
     }
 
-    @PostMapping("/update/{id}")
+    @GetMapping("/{id}/{mode}/update")
     @RolesAllowed(RolePermission.EDITOR)
     fun updateBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestBody gamemodes: Map<Gamemode, BeatmapGamemode>,
-        @PathVariable("id") id: String
-    ) {
-        service.updateBeatmap(id, gamemodes)
+        @RequestParam old: String,
+        @RequestParam new: String,
+        @PathVariable("id") id: String,
+        @PathVariable("mode") mode: Gamemode
+    ): ExposedBeatmap? {
+        return service.updateBeatmap(osuApiToken, id, mode, old, new)
     }
 
     @DeleteMapping("/delete/{id}")

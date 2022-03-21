@@ -1,9 +1,13 @@
 package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
+import nl.greaper.bnplanner.ADDED_NOMINATOR_ICON
+import nl.greaper.bnplanner.REMOVED_NOMINATOR_ICON
+import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapNominator
@@ -15,6 +19,10 @@ import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapNominator
 import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
+import nl.greaper.bnplanner.model.discord.EmbedColor
+import nl.greaper.bnplanner.model.discord.EmbedFooter
+import nl.greaper.bnplanner.model.discord.EmbedThumbnail
+import nl.greaper.bnplanner.util.parseJwtToken
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
@@ -31,7 +39,8 @@ import java.time.Instant
 class BeatmapService(
     private val dataSource: BeatmapDataSource,
     private val userService: UserService,
-    private val osuHttpClient: OsuHttpClient
+    private val osuHttpClient: OsuHttpClient,
+    private val discordClient: DiscordWebhookClient
 ) {
     val log = KotlinLogging.logger { }
 
@@ -163,11 +172,64 @@ class BeatmapService(
         dataSource.insertMany(convertedBeatmaps)
     }
 
-    fun updateBeatmap(osuId: String, gamemodes: Map<Gamemode, BeatmapGamemode>) {
-        val databaseBeatmap = dataSource.findById(osuId) ?: return
-        val databaseGamemodes = databaseBeatmap.gamemodes
-        val mergedGamemodes = mergeGamemodes(databaseGamemodes, gamemodes)
-        dataSource.updateBeatmapGamemodes(databaseBeatmap.osuId, mergedGamemodes)
+    fun getEditor(osuApiToken: String): User? {
+        val claims = parseJwtToken(osuApiToken) ?: return null
+
+        val osuId = claims.subject
+        return userService.findUserFromId(osuApiToken, osuId)
+    }
+
+    fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
+        val databaseBeatmap = dataSource.findById(osuId)
+        val updatingGamemode = databaseBeatmap?.gamemodes?.get(gamemode)
+
+        if (updatingGamemode != null) {
+            // Don't update anything if we don't have the deleting nominator or already have the new nominator
+            if (updatingGamemode.nominators.any { it.nominatorId == newNominator }
+                || updatingGamemode.nominators.all { it.nominatorId != oldNominator }) {
+                return null
+            }
+
+            val newNominators = updatingGamemode.nominators
+                .filterNot { it.nominatorId == oldNominator }
+
+            val updatedGamemode = updatingGamemode.copy(
+                nominators = (newNominators + BeatmapNominator(newNominator, false)).toSet()
+            )
+
+            val updatedGamemodes = databaseBeatmap.gamemodes.toMutableMap()
+            updatedGamemodes[gamemode] = updatedGamemode
+            val updatedBeatmap = databaseBeatmap.copy(
+                gamemodes = updatedGamemodes
+            )
+
+            dataSource.update(updatedBeatmap)
+            //logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
+
+            return updatedBeatmap.toExposedBeatmap(osuApiToken)
+        }
+
+        return null
+    }
+
+    fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String) {
+        val editor = getEditor(osuApiToken)
+        val oldNominator = userService.findUserFromId(osuApiToken, oldNominatorId)
+        val newNominator = userService.findUserFromId(osuApiToken, newNominatorId)
+        val mapper = userService.findUserFromId(osuApiToken, beatmap.mapperId)
+
+        var nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator?.username}](https://osu.ppy.sh/users/${newNominator?.osuId})**\n"
+        nominatorChangesText += "$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
+
+        discordClient.send(
+            """$nominatorChangesText
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by [${mapper?.username}](https://osu.ppy.sh/users/${mapper?.osuId}})
+            """.prependIndent(),
+            EmbedColor.BLUE,
+            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}")
+        )
     }
 
     private fun convertLegacyBeatmapToBeatmap(legacyBeatmap: LegacyBeatmap): Beatmap? {
@@ -204,21 +266,6 @@ class BeatmapService(
             dateUpdated = Instant.ofEpochSecond(legacyBeatmap.dateUpdated),
             dateRanked = Instant.ofEpochSecond(legacyBeatmap.dateRanked)
         )
-    }
-
-    private fun mergeGamemodes(oldMap: Map<Gamemode, BeatmapGamemode>, newMap: Map<Gamemode, BeatmapGamemode>): Map<Gamemode, BeatmapGamemode> {
-        return Gamemode.values().mapNotNull { existingGamemode ->
-            val oldGamemode = oldMap[existingGamemode]
-            val newGamemode = newMap[existingGamemode]
-
-            if (newGamemode != null) {
-                existingGamemode to newGamemode
-            } else if (oldGamemode != null) {
-                existingGamemode to oldGamemode
-            } else {
-                null
-            }
-        }.toMap()
     }
 
     private fun Beatmap.toExposedBeatmap(osuApiToken: String): ExposedBeatmap? {
