@@ -15,4 +15,11 @@ class AuthController(private val osuService: OsuService) {
     fun login(@RequestBody token: String): UserContext? {
         return osuService.getUserContextByToken(osuService.getToken(token))
     }
+
+    @PostMapping("/refresh")
+    fun refreshLogin(@RequestBody refreshToken: String): UserContext? {
+        val parsedToken = refreshToken.dropLast(1) // Somehow frontend always sends a trailing '='
+        val authToken = osuService.getAuthTokenByRefreshToken(parsedToken)
+        return osuService.getUserContextByToken(authToken)
+    }
 }

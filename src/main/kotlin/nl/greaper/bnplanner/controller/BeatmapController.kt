@@ -2,6 +2,7 @@ package nl.greaper.bnplanner.controller
 
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.PageLimit
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
@@ -85,6 +86,32 @@ class BeatmapController(
             page = page,
             from = from,
             to = to
+        )
+    }
+    
+    @GetMapping("/find/table")
+    @RolesAllowed(RolePermission.VIEWER)
+    fun findBeatmapsTable(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @RequestParam page: BeatmapPage,
+        @RequestParam pageNumber: Int,
+        @RequestParam pageLimit: PageLimit,
+        @RequestParam(required = false) artist: String?,
+        @RequestParam(required = false) title: String?,
+        @RequestParam(required = false) mapper: String?,
+        @RequestParam(required = false) status: Set<BeatmapStatus>?,
+        @RequestParam(required = false) nominators: Set<String>?
+    ): List<ExposedBeatmap> {
+        return service.findBeatmaps(
+            osuApiToken = osuApiToken,
+            artist = artist,
+            title = title,
+            mapper = mapper,
+            status = status ?: emptySet(),
+            nominators = nominators ?: emptySet(),
+            page = page,
+            pageNumber = pageNumber,
+            pageLimit = pageLimit
         )
     }
 

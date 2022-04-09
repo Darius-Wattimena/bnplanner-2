@@ -7,6 +7,7 @@ import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.PageLimit
 import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
@@ -81,6 +82,24 @@ class BeatmapService(
         ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
     }
 
+    fun findBeatmaps(
+        osuApiToken: String,
+        artist: String?,
+        title: String?,
+        mapper: String?,
+        status: Set<BeatmapStatus>,
+        nominators: Set<String>,
+        page: BeatmapPage,
+        pageNumber: Int,
+        pageLimit: PageLimit
+    ): List<ExposedBeatmap> {
+        return dataSource.findAll(
+            setupFilter(artist, title, mapper, status, nominators, page),
+            pageNumber,
+            pageLimit
+        ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
+    }
+
     fun addBeatmap(osuApiToken: String, newBeatmap: NewBeatmap) {
         val addDate = Instant.now()
         val osuBeatmap = osuHttpClient.findBeatmapWithId(osuApiToken, newBeatmap.osuId) ?: return
@@ -91,7 +110,7 @@ class BeatmapService(
                 nominators = emptySet(),
                 isReady = false
             )
-        }.associateBy { it.gamemode }
+        }
 
         val newBeatmap = Beatmap(
             osuId = newBeatmap.osuId,
@@ -100,7 +119,7 @@ class BeatmapService(
             note = "",
             mapperId = osuBeatmap.user_id,
             status = BeatmapStatus.Pending,
-            gamemodes = preparedBeatmapGamemodes,
+            gamemodes = preparedBeatmapGamemodes.toSet(),
             dateAdded = addDate,
             dateUpdated = addDate,
             dateRanked = null
@@ -181,7 +200,7 @@ class BeatmapService(
 
     fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
         val databaseBeatmap = dataSource.findById(osuId)
-        val updatingGamemode = databaseBeatmap?.gamemodes?.get(gamemode)
+        val updatingGamemode = databaseBeatmap?.gamemodes?.find { it.gamemode == gamemode }
 
         if (updatingGamemode != null) {
             // Don't update anything if we don't have the deleting nominator or already have the new nominator
@@ -197,14 +216,13 @@ class BeatmapService(
                 nominators = (newNominators + BeatmapNominator(newNominator, false)).toSet()
             )
 
-            val updatedGamemodes = databaseBeatmap.gamemodes.toMutableMap()
-            updatedGamemodes[gamemode] = updatedGamemode
+            val updatedGamemodes = databaseBeatmap.gamemodes
             val updatedBeatmap = databaseBeatmap.copy(
-                gamemodes = updatedGamemodes
+                gamemodes = updatedGamemodes - updatingGamemode + updatedGamemode
             )
 
             dataSource.update(updatedBeatmap)
-            //logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
+            logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
 
             return updatedBeatmap.toExposedBeatmap(osuApiToken)
         }
@@ -226,9 +244,10 @@ class BeatmapService(
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${mapper?.username}](https://osu.ppy.sh/users/${mapper?.osuId}})
             """.prependIndent(),
-            EmbedColor.BLUE,
-            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}")
+            color = EmbedColor.BLUE,
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            confidential = false
         )
     }
 
@@ -261,7 +280,7 @@ class BeatmapService(
             note = legacyBeatmap.note,
             mapperId = legacyBeatmap.mapperId.toString(),
             status = beatmapStatus,
-            gamemodes = mapOf(Gamemode.fruits to catchGamemode),
+            gamemodes = setOf(catchGamemode),
             dateAdded = Instant.ofEpochSecond(legacyBeatmap.dateAdded),
             dateUpdated = Instant.ofEpochSecond(legacyBeatmap.dateUpdated),
             dateRanked = Instant.ofEpochSecond(legacyBeatmap.dateRanked)
@@ -270,7 +289,7 @@ class BeatmapService(
 
     private fun Beatmap.toExposedBeatmap(osuApiToken: String): ExposedBeatmap? {
         val mapper = userService.findUserFromId(osuApiToken, mapperId) ?: return null
-        val preparedGamemodes = gamemodes.values.map { entry ->
+        val preparedGamemodes = gamemodes.map { entry ->
             val gamemodeNominators = entry.nominators.mapNotNull {
                 val nominatorUser = userService.findUserFromId(osuApiToken, it.nominatorId)
 

@@ -32,7 +32,16 @@ class OsuService(
         return body
     }
 
-    fun getValidToken(token: String, refreshToken: String): String? {
+    fun getAuthTokenByRefreshToken(refreshToken: String): AuthToken {
+        val response = client.refreshToken(refreshToken)
+        val body = response.body
+
+        check(response.statusCode.is2xxSuccessful && body != null) { "Couldn't get token from osu" }
+
+        return body
+    }
+
+    fun getValidUpdaterToken(token: String, refreshToken: String): String? {
         val claims = parseJwtToken(token)
         val exp = (claims?.get("exp") as? Double)?.toLong()
 
@@ -41,7 +50,7 @@ class OsuService(
             val isExpired = actualExpire.isBefore(Instant.now())
 
             if (isExpired) {
-                val refreshedApiToken = client.refreshToken(refreshToken).body ?: return null
+                val refreshedApiToken = getAuthTokenByRefreshToken(refreshToken)
                 osuTokenDataSource.deleteMany()
                 osuTokenDataSource.insertOne(refreshedApiToken)
 

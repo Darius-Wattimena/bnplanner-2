@@ -20,7 +20,7 @@ class UserUpdater(
     fun taskUserUpdater() {
         val recalculationUser = userRecalculateDataSource.findFirst() ?: return
         val authToken = osuTokenDataSource.findFirst() ?: return
-        val accessToken = osuService.getValidToken(authToken.access_token, authToken.refresh_token) ?: return
+        val accessToken = osuService.getValidUpdaterToken(authToken.access_token, authToken.refresh_token) ?: return
         val recalculatedUser = userService.forceFindUserFromId(accessToken, recalculationUser.osuId) ?: return
 
         userRecalculateDataSource.deleteById(recalculatedUser.osuId)
