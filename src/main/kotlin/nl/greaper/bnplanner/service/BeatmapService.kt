@@ -8,7 +8,6 @@ import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.PageLimit
-import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapNominator
@@ -23,7 +22,6 @@ import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
-import nl.greaper.bnplanner.util.parseJwtToken
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
@@ -191,13 +189,6 @@ class BeatmapService(
         dataSource.insertMany(convertedBeatmaps)
     }
 
-    fun getEditor(osuApiToken: String): User? {
-        val claims = parseJwtToken(osuApiToken) ?: return null
-
-        val osuId = claims.subject
-        return userService.findUserFromId(osuApiToken, osuId)
-    }
-
     fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
         val databaseBeatmap = dataSource.findById(osuId)
         val updatingGamemode = databaseBeatmap?.gamemodes?.find { it.gamemode == gamemode }
@@ -231,7 +222,7 @@ class BeatmapService(
     }
 
     fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String) {
-        val editor = getEditor(osuApiToken)
+        val editor = userService.getEditor(osuApiToken)
         val oldNominator = userService.findUserFromId(osuApiToken, oldNominatorId)
         val newNominator = userService.findUserFromId(osuApiToken, newNominatorId)
         val mapper = userService.findUserFromId(osuApiToken, beatmap.mapperId)

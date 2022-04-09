@@ -10,7 +10,6 @@ import nl.greaper.bnplanner.model.discord.Message
 import nl.greaper.bnplanner.model.discord.getValue
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -31,7 +30,7 @@ class DiscordWebhookClient(
         color: EmbedColor,
         thumbnail: EmbedThumbnail,
         footer: EmbedFooter,
-        confidential: Boolean = true
+        confidential: Boolean
     ) {
         return send(
             EmbedMessage(

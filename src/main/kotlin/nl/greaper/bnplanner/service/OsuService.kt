@@ -17,7 +17,7 @@ class OsuService(
     private val userService: UserService,
     private val osuTokenDataSource: OsuTokenDataSource
 ) {
-    val log = KotlinLogging.logger { }
+    private val log = KotlinLogging.logger { }
 
     fun getToken(code: String): AuthToken {
         val parsedToken = code.dropLast(1) // Somehow frontend always sends a trailing '='

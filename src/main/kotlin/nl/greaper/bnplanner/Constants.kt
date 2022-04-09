@@ -13,3 +13,6 @@ const val CREATED_BEATMAP_ICON = "\uD83C\uDF1F" // 🌟
 const val DELETED_BEATMAP_ICON = "\uD83D\uDC12" // 🐒
 const val ADDED_NOMINATOR_ICON = "✅"
 const val REMOVED_NOMINATOR_ICON = "❌"
+
+const val LOGIN_ICON = "\uD83D\uDCD7" // 📗
+const val LOGIN_FAILED_ICON = "\uD83D\uDCD5" // 📕
