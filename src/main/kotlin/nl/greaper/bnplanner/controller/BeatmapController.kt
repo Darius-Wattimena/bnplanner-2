@@ -3,7 +3,6 @@ package nl.greaper.bnplanner.controller
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.PageLimit
-import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmap
@@ -13,7 +12,6 @@ import nl.greaper.bnplanner.service.BeatmapService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -40,7 +38,7 @@ class BeatmapController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @PathVariable("id") id: String
     ): ExposedBeatmap? {
-        return service.findBeatmap(osuApiToken, id)
+        return service.findExposedBeatmap(osuApiToken, id)
     }
 
     @GetMapping("/count")

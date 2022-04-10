@@ -7,12 +7,7 @@ import nl.greaper.bnplanner.model.PageLimit
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import org.bson.conversions.Bson
-import org.litote.kmongo.ensureIndex
-import org.litote.kmongo.eq
-import org.litote.kmongo.getCollection
-import org.litote.kmongo.replaceOneById
-import org.litote.kmongo.set
-import org.litote.kmongo.setTo
+import org.litote.kmongo.*
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,15 +15,11 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
     override fun initCollection(): MongoCollection<Beatmap> {
         return database.getCollection<Beatmap>("beatmaps").also {
             it.ensureIndex(
+                Beatmap::status,
                 Beatmap::dateUpdated,
-                Beatmap::status
+                Beatmap::artist,
+                Beatmap::title
             )
-
-            it.ensureIndex(Beatmap::artist)
-            it.ensureIndex(Beatmap::title)
-            it.ensureIndex(Beatmap::mapperId)
-            it.ensureIndex(Beatmap::status)
-            it.ensureIndex(Beatmap::dateUpdated)
         }
     }
 
@@ -44,6 +35,7 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
         }
 
         val findQuery = collection.find(filter)
+        findQuery.sort("{ status: 1, dateUpdated: -1 }")
         findQuery.limit(numberLimit)
         return if (pageNumber <= 1) {
             findQuery.toList()
@@ -59,6 +51,7 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
         to: Int,
     ): List<Beatmap> {
         val findQuery = collection.find(filter)
+        findQuery.sort("{ status: 1, dateUpdated: -1 }")
         findQuery.limit(to - from)
         if (from > 0) {
             findQuery.skip(from)

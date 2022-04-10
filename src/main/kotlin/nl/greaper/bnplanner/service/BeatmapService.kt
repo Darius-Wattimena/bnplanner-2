@@ -43,7 +43,11 @@ class BeatmapService(
 ) {
     val log = KotlinLogging.logger { }
 
-    fun findBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
+    fun findBeatmap(id: String): Beatmap? {
+        return dataSource.findById(id)
+    }
+
+    fun findExposedBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
         return dataSource.findById(id)?.toExposedBeatmap(osuApiToken)
     }
 
@@ -98,11 +102,11 @@ class BeatmapService(
         ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
     }
 
-    fun addBeatmap(osuApiToken: String, newBeatmap: NewBeatmap) {
+    fun addBeatmap(osuApiToken: String, input: NewBeatmap) {
         val addDate = Instant.now()
-        val osuBeatmap = osuHttpClient.findBeatmapWithId(osuApiToken, newBeatmap.osuId) ?: return
+        val osuBeatmap = osuHttpClient.findBeatmapWithId(osuApiToken, input.osuId) ?: return
 
-        val preparedBeatmapGamemodes = newBeatmap.gamemodes.map {
+        val preparedBeatmapGamemodes = input.gamemodes.map {
             BeatmapGamemode(
                 gamemode = it,
                 nominators = emptySet(),
@@ -111,10 +115,11 @@ class BeatmapService(
         }
 
         val newBeatmap = Beatmap(
-            osuId = newBeatmap.osuId,
+            osuId = input.osuId,
             artist = osuBeatmap.artist,
             title = osuBeatmap.title,
             note = "",
+            mapper = osuBeatmap.creator,
             mapperId = osuBeatmap.user_id,
             status = BeatmapStatus.Pending,
             gamemodes = preparedBeatmapGamemodes.toSet(),
@@ -190,35 +195,39 @@ class BeatmapService(
     }
 
     fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
-        val databaseBeatmap = dataSource.findById(osuId)
-        val updatingGamemode = databaseBeatmap?.gamemodes?.find { it.gamemode == gamemode }
+        val databaseBeatmap = findBeatmap(osuId) ?: return null
 
-        if (updatingGamemode != null) {
-            // Don't update anything if we don't have the deleting nominator or already have the new nominator
-            if (updatingGamemode.nominators.any { it.nominatorId == newNominator }
-                || updatingGamemode.nominators.all { it.nominatorId != oldNominator }) {
-                return null
+        val updatedBeatmap = updateBeatmapGamemode(databaseBeatmap, gamemode) { updatingGamemode ->
+            val (currentFirstNominator, currentSecondNominator) = updatingGamemode.nominators.toList().let {
+                it.getOrNull(0) to it.getOrNull(1)
             }
 
-            val newNominators = updatingGamemode.nominators
-                .filterNot { it.nominatorId == oldNominator }
+            val newNominators = if (currentFirstNominator?.nominatorId == oldNominator) {
+                BeatmapNominator(newNominator, false) to currentSecondNominator
+            } else {
+                currentFirstNominator to BeatmapNominator(newNominator, false)
+            }
 
             val updatedGamemode = updatingGamemode.copy(
-                nominators = (newNominators + BeatmapNominator(newNominator, false)).toSet()
+                nominators = setOfNotNull(newNominators.first, newNominators.second)
             )
 
-            val updatedGamemodes = databaseBeatmap.gamemodes
-            val updatedBeatmap = databaseBeatmap.copy(
-                gamemodes = updatedGamemodes - updatingGamemode + updatedGamemode
-            )
+            updatedGamemode
+        } ?: return null
 
-            dataSource.update(updatedBeatmap)
-            logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
+        dataSource.update(updatedBeatmap)
+        logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
 
-            return updatedBeatmap.toExposedBeatmap(osuApiToken)
-        }
+        return updatedBeatmap.toExposedBeatmap(osuApiToken)
+    }
 
-        return null
+    fun updateBeatmapGamemode(beatmap: Beatmap, gamemode: Gamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap? {
+        val updatingGamemode = beatmap.gamemodes.find { it.gamemode == gamemode } ?: return null
+
+        return beatmap.copy(
+            gamemodes = beatmap.gamemodes - updatingGamemode + new(updatingGamemode),
+            dateUpdated = Instant.now()
+        )
     }
 
     fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String) {
@@ -227,8 +236,22 @@ class BeatmapService(
         val newNominator = userService.findUserFromId(osuApiToken, newNominatorId)
         val mapper = userService.findUserFromId(osuApiToken, beatmap.mapperId)
 
-        var nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator?.username}](https://osu.ppy.sh/users/${newNominator?.osuId})**\n"
-        nominatorChangesText += "$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
+        var nominatorChangesText = ""
+
+        if (newNominatorId != "0") {
+            nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator?.username}](https://osu.ppy.sh/users/${newNominator?.osuId})**"
+        }
+
+        if (oldNominatorId != "0") {
+            nominatorChangesText += "${
+                // Add a \n if needed
+                if (nominatorChangesText != "") {
+                    "\n"
+                } else {
+                    ""
+                }
+            }$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
+        }
 
         discordClient.send(
             """$nominatorChangesText
@@ -243,9 +266,8 @@ class BeatmapService(
     }
 
     private fun convertLegacyBeatmapToBeatmap(legacyBeatmap: LegacyBeatmap): Beatmap? {
-        // Don't convert if the beatmap had a user which could not be found (e.g. restricted person)
-        val nominatorOne = legacyBeatmap.nominators.getOrNull(0)?.toString()?.takeIf { it != "0" }
-        val nominatorTwo = legacyBeatmap.nominators.getOrNull(1)?.toString()?.takeIf { it != "0" }
+        val nominatorOne = legacyBeatmap.nominators.getOrNull(0)?.toString() ?: "0"
+        val nominatorTwo = legacyBeatmap.nominators.getOrNull(1)?.toString() ?: "0"
 
         // This should never happen
         val beatmapStatus = BeatmapStatus.fromPriorityStatus(legacyBeatmap.status.toInt()) ?: return null
@@ -253,8 +275,8 @@ class BeatmapService(
         val catchGamemode = BeatmapGamemode(
             gamemode = Gamemode.fruits,
             nominators = setOfNotNull(
-                nominatorOne?.let { BeatmapNominator(it, legacyBeatmap.nominatedByBNOne) },
-                nominatorTwo?.let { BeatmapNominator(it, legacyBeatmap.nominatedByBNTwo) },
+                BeatmapNominator(nominatorOne, legacyBeatmap.nominatedByBNOne),
+                BeatmapNominator(nominatorTwo, legacyBeatmap.nominatedByBNTwo),
             ),
             isReady = legacyBeatmap.nominatedByBNOne || legacyBeatmap.nominatedByBNTwo
         )
@@ -269,6 +291,7 @@ class BeatmapService(
             artist = legacyBeatmap.artist,
             title = legacyBeatmap.title,
             note = legacyBeatmap.note,
+            mapper = legacyBeatmap.mapper,
             mapperId = legacyBeatmap.mapperId.toString(),
             status = beatmapStatus,
             gamemodes = setOf(catchGamemode),

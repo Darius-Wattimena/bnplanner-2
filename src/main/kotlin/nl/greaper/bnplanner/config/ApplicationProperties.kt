@@ -36,3 +36,9 @@ data class DiscordConfig(
     val webhook: String,
     val webhookPublic: String
 )
+
+@ConstructorBinding
+@ConfigurationProperties("aiess")
+data class AiessConfig(
+    val token: String
+)

@@ -25,7 +25,7 @@ import nl.greaper.bnplanner.model.discord.EmbedColor.RED
 
 data class EmbedMessage(
     val description: String,
-    val timestamp: String,
+    //val timestamp: String,
     val color: Int,
     val thumbnail: EmbedThumbnail,
     val footer: EmbedFooter

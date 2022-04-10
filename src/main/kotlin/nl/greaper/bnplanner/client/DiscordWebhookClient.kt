@@ -35,7 +35,7 @@ class DiscordWebhookClient(
         return send(
             EmbedMessage(
                 description = description,
-                timestamp = Instant.now().toString(),
+                //timestamp = Instant.now().toString(),
                 color = color.getValue(),
                 thumbnail = thumbnail,
                 footer = footer

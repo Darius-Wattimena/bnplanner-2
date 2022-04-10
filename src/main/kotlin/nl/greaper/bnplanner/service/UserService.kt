@@ -99,6 +99,14 @@ class UserService(
     }
 
     fun findUserFromId(osuApiToken: String, osuId: String): User? {
+        if (osuId == "0") {
+            return User(
+                "0",
+                "None",
+                gamemodes = listOf(UserGamemode(Gamemode.fruits, Role.Mapper))
+            )
+        }
+
         if (osuId == "0" || osuId == "-1" || osuId == "-2") return null
 
         return dataSource.findUser(osuId) ?: createTemporaryUser(osuId)

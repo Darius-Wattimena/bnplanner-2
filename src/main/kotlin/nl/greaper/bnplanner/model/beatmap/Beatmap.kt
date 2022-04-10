@@ -14,6 +14,7 @@ data class Beatmap(
     val artist: String,
     val title: String,
     val note: String,
+    val mapper: String,
     val mapperId: String,
     @JsonSerialize(using = BeatmapStatusSerializer::class)
     @JsonDeserialize(using = BeatmapStatusDeserializer::class)
