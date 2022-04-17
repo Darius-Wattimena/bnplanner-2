@@ -81,6 +81,7 @@ class AiessService(
         discordClient.send(
             """**$messageIcon Updated status to $newStatus ${gamemode?.let { "[${it.toReadable()}]" }}**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by ${beatmap.mapper}
             """.prependIndent(),
             EmbedColor.BLUE,
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),

@@ -134,7 +134,7 @@ class BeatmapService(
     private fun setupFilter(
         artist: String?,
         title: String?,
-        mapperId: String?,
+        mapper: String?,
         status: Set<BeatmapStatus>,
         nominators: Set<String>,
         page: BeatmapPage
@@ -143,7 +143,7 @@ class BeatmapService(
 
         artist?.let { filters += Beatmap::artist regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
         title?.let { filters += Beatmap::title regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
-        mapperId?.let { filters += Beatmap::mapperId eq it }
+        mapper?.let { filters += Beatmap::mapper regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
 
         if (nominators.isNotEmpty()) {
             filters += Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId `in` nominators

@@ -98,18 +98,22 @@ class UserService(
         return newUser
     }
 
-    fun findUserFromId(osuApiToken: String, osuId: String): User? {
+    fun findUserFromId(osuId: String): User? {
         if (osuId == "0") {
             return User(
                 "0",
                 "None",
-                gamemodes = listOf(UserGamemode(Gamemode.fruits, Role.Mapper))
+                gamemodes = emptyList()
             )
         }
 
-        if (osuId == "0" || osuId == "-1" || osuId == "-2") return null
+        return dataSource.findUser(osuId)
+    }
 
-        return dataSource.findUser(osuId) ?: createTemporaryUser(osuId)
+    fun findUserFromId(osuApiToken: String, osuId: String): User? {
+        if (osuId == "-1" || osuId == "-2") return null
+
+        return findUserFromId(osuId) ?: createTemporaryUser(osuId)
     }
 
     fun getEditor(osuApiToken: String): User? {

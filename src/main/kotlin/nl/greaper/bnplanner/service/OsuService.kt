@@ -58,6 +58,12 @@ class OsuService(
             } else {
                 return token
             }
+        } else if (claims == null) {
+            val refreshedApiToken = getAuthTokenByRefreshToken(refreshToken)
+            osuTokenDataSource.deleteMany()
+            osuTokenDataSource.insertOne(refreshedApiToken)
+
+            return refreshedApiToken.access_token
         }
 
         return null

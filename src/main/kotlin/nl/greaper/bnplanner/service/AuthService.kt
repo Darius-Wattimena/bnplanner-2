@@ -34,7 +34,7 @@ class AuthService(
         try {
             val parsedToken = refreshToken.dropLast(1) // Somehow frontend always sends a trailing '='
             val authToken = osuService.getAuthTokenByRefreshToken(parsedToken)
-            return osuService.getUserContextByToken(authToken).also { logLogin(it) }
+            return osuService.getUserContextByToken(authToken).also { logLogin(context = it, refresh = true) }
         } catch (exception: Throwable) {
             logLogin(
                 context = null,
@@ -58,12 +58,12 @@ class AuthService(
 
         val loginMessage = when {
             exception?.message != null -> {
-                "**ERROR:** Unexpected error occurred while $loginMessagePart.\n" +
+                "**ERROR:** Unexpected error occurred while $loginMessagePart\n" +
                         exception.message
             }
-            context == null -> "**ERROR:** Could not set up context while $loginMessagePart."
-            user == null -> "**ERROR:** Could not find user while $loginMessagePart."
-            else -> "**LOGIN:** ${user.username} ${if (refresh) "refreshed login" else "logged in"}."
+            context == null -> "**ERROR:** Could not set up context while $loginMessagePart"
+            user == null -> "**ERROR:** Could not find user while $loginMessagePart"
+            else -> "**LOGIN:** ${user.username} ${if (refresh) "refreshed login" else "logged in"}"
         }
 
         discordClient.send(
