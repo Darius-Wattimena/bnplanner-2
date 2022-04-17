@@ -19,7 +19,7 @@ data class Beatmap(
     @JsonSerialize(using = BeatmapStatusSerializer::class)
     @JsonDeserialize(using = BeatmapStatusDeserializer::class)
     val status: BeatmapStatus,
-    val gamemodes: Set<BeatmapGamemode>,
+    val gamemodes: List<BeatmapGamemode>,
 
     val dateAdded: Instant,
     val dateUpdated: Instant,
@@ -28,7 +28,7 @@ data class Beatmap(
 
 data class BeatmapGamemode(
     val gamemode: Gamemode,
-    val nominators: Set<BeatmapNominator>,
+    val nominators: List<BeatmapNominator>,
     val isReady: Boolean
 )
 

@@ -4,6 +4,6 @@ import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 
 data class AiessBeatmapEvent(
     val osuId: String,
-    val nominatorOsuId: String,
+    val nominatorId: String,
     val status: BeatmapStatus
 )

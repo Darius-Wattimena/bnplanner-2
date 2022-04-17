@@ -68,13 +68,13 @@ class OsuHttpClient(
         return authRest.postForEntity(tokenUri, request)
     }
 
-    fun get(uri: String, osuApiToken: String): ResponseEntity<String> {
-        return request(uri, HttpMethod.GET, osuApiToken)
+    fun get(uri: String, osuApiToken: String, includeBearer: Boolean): ResponseEntity<String> {
+        return request(uri, HttpMethod.GET, osuApiToken, includeBearer =  includeBearer)
     }
 
-    fun findBeatmapWithId(osuApiToken: String, osuId: String): BeatmapSet? {
+    fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean): BeatmapSet? {
         return try {
-            val response = get("/beatmapsets/$osuId", osuApiToken)
+            val response = get("/beatmapsets/$osuId", osuApiToken, includeBearer)
             return response.body?.let { objectMapper.readValue<BeatmapSet>(it) }
         } catch (ex: Exception) {
             log.error(ex) { "Unable to get a beatmap from the osu api, using id $osuId" }
@@ -82,13 +82,13 @@ class OsuHttpClient(
         }
     }
 
-    fun findUserWithId(osuApiToken: String, osuId: String): Me? {
+    fun findUserWithId(osuApiToken: String, osuId: String, includeBearer: Boolean = true): Me? {
         if (shouldSkipUser(osuId)) {
             return null
         }
 
         return try {
-            val response = get("/users/$osuId?key=id", osuApiToken)
+            val response = get("/users/$osuId?key=id", osuApiToken, includeBearer)
             return response.body?.let { objectMapper.readValue<Me>(it) }
         } catch (ex: Exception) {
             log.error(ex) { "Unable to get a user from the osu api, using id $osuId" }
@@ -96,15 +96,22 @@ class OsuHttpClient(
         }
     }
 
-    private fun request(uri: String, method: HttpMethod, authToken: String, body: String = ""): ResponseEntity<String> {
-        headers.remove(HttpHeaders.AUTHORIZATION)
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer $authToken")
+    private fun request(uri: String, method: HttpMethod, authToken: String, body: String = "", includeBearer: Boolean): ResponseEntity<String> {
+        if (includeBearer) {
+            headers.setBearerAuth(authToken)
+        } else {
+            headers.set(HttpHeaders.AUTHORIZATION, authToken)
+        }
 
         val request = if (body == "") {
             HttpEntity(headers)
         } else {
             HttpEntity(body, headers)
         }
-        return rest.exchange("https://osu.ppy.sh/api/v2$uri", method, request, String::class.java)
+        val requestUri = "https://osu.ppy.sh/api/v2$uri"
+
+        log.info { "$method ==> $requestUri | $headers" }
+
+        return rest.exchange(requestUri, method, request, String::class.java)
     }
 }

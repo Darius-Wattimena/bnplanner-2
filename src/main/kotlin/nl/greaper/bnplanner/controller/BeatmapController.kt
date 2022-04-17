@@ -135,8 +135,11 @@ class BeatmapController(
     }
 
     @DeleteMapping("/delete/{id}")
-    @RolesAllowed(RolePermission.ADMIN)
-    fun deleteBeatmap(@PathVariable("id") id: String) {
-        service.deleteBeatmap(id)
+    @RolesAllowed(RolePermission.DEVELOPER)
+    fun deleteBeatmap(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @PathVariable("id") id: String
+    ) {
+        service.deleteBeatmap(osuApiToken, id)
     }
 }
