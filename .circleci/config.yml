@@ -1,0 +1,95 @@
+defaults: &defaults
+  working_directory: ~/repo
+  docker:
+    - image: cimg/openjdk:11.0
+
+
+version: 2
+jobs:
+  build:
+    <<: *defaults
+    environment:
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - checkout
+
+      - run: gradle dependencies
+
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: v1-dependencies-{{ checksum "build.gradle" }}
+
+      # run tests and build war file!
+      - run: gradle test build
+
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/tests/junit
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/tests/junit/ \;
+          when: always
+
+      - store_test_results:
+          path: ~/tests
+
+      - persist_to_workspace:
+          root: ~/repo
+          paths:
+            - build
+            - out
+            - ./build/generated-resources/version.properties
+
+      - store_artifacts:
+          path: ./build/libs
+          destination: wars
+
+      - store_artifacts:
+          path: ./build/generated-resources/version.properties
+
+  deploy:
+    <<: *defaults
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/repo
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.gradle" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run:
+          name: Deploy to Elastic Beanstalk
+          command: |
+            gradle deployProduction
+
+workflows:
+  version: 2
+  build-approve-deploy:
+    jobs:
+      - build:
+          context: build-context
+      - hold:
+          type: approval
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          context: build-context
+          requires:
+            - hold

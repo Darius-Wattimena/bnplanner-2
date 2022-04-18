@@ -4,6 +4,7 @@ plugins {
     id("org.springframework.boot") version "2.6.3"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
+    id("fi.evident.beanstalk") version "0.3.3"
     war
     kotlin("jvm") version "1.6.10"
     kotlin("plugin.spring") version "1.6.10"
@@ -46,4 +47,16 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named<fi.evident.gradle.beanstalk.BeanstalkPluginExtension>("beanstalk") {
+    s3Endpoint = "s3-eu-west-1.amazonaws.com"
+    beanstalkEndpoint = "elasticbeanstalk.eu-west-1.amazonaws.com"
+    tasks.named("deployments") {
+        tasks.named<fi.evident.gradle.beanstalk.BeanstalkDeployment>("production") {
+            file = tasks.bootWar
+            application = "bnplanner"
+            environment = "bnplanner-env"
+        }
+    }
 }
