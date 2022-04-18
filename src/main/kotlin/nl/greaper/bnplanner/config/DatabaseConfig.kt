@@ -21,7 +21,7 @@ class DatabaseConfig {
             val encodedUsername = URLEncoder.encode(config.username, encoding)
             val encodedPassword = URLEncoder.encode(config.password, encoding)
             val encodedAuthDb = URLEncoder.encode(config.authDb, encoding)
-            "mongodb+srv://$encodedUsername:$encodedPassword@${config.host}:${config.port}/$encodedAuthDb"
+            "mongodb+srv://$encodedUsername:$encodedPassword@${config.host}/$encodedAuthDb"
         } else {
             "mongodb://${config.host}:${config.port}"
         }
