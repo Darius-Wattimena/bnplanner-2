@@ -12,7 +12,8 @@ plugins {
 
 group = "nl.greaper"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_11
+java.targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
@@ -38,26 +39,28 @@ dependencies {
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
+val compileKotlin: KotlinCompile by tasks
+
+compileKotlin.kotlinOptions {
+    freeCompilerArgs = listOf("-Xjsr305=strict")
+    jvmTarget = "11"
+}
+
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
     }
-}
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
+    beanstalk {
+        s3Endpoint = "s3-eu-west-1.amazonaws.com"
+        beanstalkEndpoint = "elasticbeanstalk.eu-west-1.amazonaws.com"
 
-beanstalk {
-    s3Endpoint = "s3-eu-west-1.amazonaws.com"
-    beanstalkEndpoint = "elasticbeanstalk.eu-west-1.amazonaws.com"
-
-    deployments {
-        create("production") {
-            file = tasks.bootWar
-            application = "bnplanner"
-            environment = "bnplanner-env"
+        deployments {
+            create("production") {
+                file = bootWar
+                application = "bnplanner"
+                environment = "bnplanner-env"
+            }
         }
     }
 }

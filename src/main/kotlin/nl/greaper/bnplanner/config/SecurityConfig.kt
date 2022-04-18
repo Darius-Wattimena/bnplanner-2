@@ -28,7 +28,7 @@ class SecurityConfig(
             .and()
 
         http.exceptionHandling()
-            .authenticationEntryPoint { request: HttpServletRequest?, response: HttpServletResponse, ex: AuthenticationException ->
+            .authenticationEntryPoint { _: HttpServletRequest?, response: HttpServletResponse, ex: AuthenticationException ->
                 response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
                     ex.message
