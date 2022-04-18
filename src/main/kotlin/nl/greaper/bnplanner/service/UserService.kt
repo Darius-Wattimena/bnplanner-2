@@ -5,7 +5,11 @@ import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.UserDataSource
 import nl.greaper.bnplanner.datasource.UserRecalculateDataSource
-import nl.greaper.bnplanner.model.*
+import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.Role
+import nl.greaper.bnplanner.model.User
+import nl.greaper.bnplanner.model.UserGamemode
+import nl.greaper.bnplanner.model.UserRecalculate
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail

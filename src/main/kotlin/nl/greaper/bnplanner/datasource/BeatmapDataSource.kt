@@ -2,12 +2,13 @@ package nl.greaper.bnplanner.datasource
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.PageLimit
 import nl.greaper.bnplanner.model.beatmap.Beatmap
-import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import org.bson.conversions.Bson
-import org.litote.kmongo.*
+import org.litote.kmongo.ensureIndex
+import org.litote.kmongo.getCollection
+import org.litote.kmongo.replaceOneById
+import org.litote.kmongo.sort
 import org.springframework.stereotype.Component
 
 @Component

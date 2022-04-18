@@ -86,7 +86,7 @@ class BeatmapController(
             to = to
         )
     }
-    
+
     @GetMapping("/find/table")
     @RolesAllowed(RolePermission.VIEWER)
     fun findBeatmapsTable(

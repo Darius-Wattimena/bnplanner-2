@@ -14,7 +14,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
-import java.time.Instant
 
 @Component
 class DiscordWebhookClient(
@@ -35,7 +34,7 @@ class DiscordWebhookClient(
         return send(
             EmbedMessage(
                 description = description,
-                //timestamp = Instant.now().toString(),
+                // timestamp = Instant.now().toString(),
                 color = color.getValue(),
                 thumbnail = thumbnail,
                 footer = footer

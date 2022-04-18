@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import nl.greaper.bnplanner.config.OsuConfig
-import nl.greaper.bnplanner.model.osu.*
-import nl.greaper.bnplanner.util.parseJwtToken
+import nl.greaper.bnplanner.model.osu.AuthToken
+import nl.greaper.bnplanner.model.osu.BeatmapSet
+import nl.greaper.bnplanner.model.osu.Me
+import nl.greaper.bnplanner.model.osu.OsuOAuth
+import nl.greaper.bnplanner.model.osu.RefreshToken
 import nl.greaper.bnplanner.util.shouldSkipUser
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -15,8 +18,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 @Component
 class OsuHttpClient(
@@ -69,7 +70,7 @@ class OsuHttpClient(
     }
 
     fun get(uri: String, osuApiToken: String, includeBearer: Boolean): ResponseEntity<String> {
-        return request(uri, HttpMethod.GET, osuApiToken, includeBearer =  includeBearer)
+        return request(uri, HttpMethod.GET, osuApiToken, includeBearer = includeBearer)
     }
 
     fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean): BeatmapSet? {

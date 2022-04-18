@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 class DefaultExceptionHandler(
     private val discordClient: DiscordWebhookClient
-): ResponseEntityExceptionHandler() {
+) : ResponseEntityExceptionHandler() {
     private val log = KotlinLogging.logger { }
 
     @ExceptionHandler

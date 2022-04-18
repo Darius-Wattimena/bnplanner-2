@@ -59,7 +59,7 @@ class AuthService(
         val loginMessage = when {
             exception?.message != null -> {
                 "**ERROR:** Unexpected error occurred while $loginMessagePart\n" +
-                        exception.message
+                    exception.message
             }
             context == null -> "**ERROR:** Could not set up context while $loginMessagePart"
             user == null -> "**ERROR:** Could not find user while $loginMessagePart"

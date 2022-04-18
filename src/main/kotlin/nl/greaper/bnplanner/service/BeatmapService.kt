@@ -29,7 +29,6 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.and
 import org.litote.kmongo.bson
 import org.litote.kmongo.div
-import org.litote.kmongo.eq
 import org.litote.kmongo.`in`
 import org.litote.kmongo.or
 import org.litote.kmongo.regex
@@ -283,12 +282,12 @@ class BeatmapService(
 
         if (oldNominatorId != "0") {
             nominatorChangesText += "${
-                // Add a \n if needed
-                if (nominatorChangesText != "") {
-                    "\n"
-                } else {
-                    ""
-                }
+            // Add a \n if needed
+            if (nominatorChangesText != "") {
+                "\n"
+            } else {
+                ""
+            }
             }$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
         }
 

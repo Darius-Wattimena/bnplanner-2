@@ -54,7 +54,7 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
             usersByGamemode.flatMap { it.value }.toSet()
         }
 
-        val usernameFilteredUsers = username?.let { gamemodeUsers.filter { user -> user.username.contains(username, true) }} ?: gamemodeUsers
+        val usernameFilteredUsers = username?.let { gamemodeUsers.filter { user -> user.username.contains(username, true) } } ?: gamemodeUsers
 
         return if (roles.isNotEmpty()) {
             roles.map { role ->

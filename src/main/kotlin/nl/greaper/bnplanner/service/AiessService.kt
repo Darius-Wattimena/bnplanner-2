@@ -1,6 +1,13 @@
 package nl.greaper.bnplanner.service
 
-import nl.greaper.bnplanner.*
+import nl.greaper.bnplanner.BUBBLED_STATUS_ICON
+import nl.greaper.bnplanner.DISQUALIFIED_STATUS_ICON
+import nl.greaper.bnplanner.GRAVED_STATUS_ICON
+import nl.greaper.bnplanner.NOMINATED_STATUS_ICON
+import nl.greaper.bnplanner.POPPED_STATUS_ICON
+import nl.greaper.bnplanner.RANKED_STATUS_ICON
+import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
+import nl.greaper.bnplanner.UPDATED_STATUS_ICON
 import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
@@ -9,7 +16,6 @@ import nl.greaper.bnplanner.model.aiess.AiessResponse
 import nl.greaper.bnplanner.model.aiess.AiessUserEvent
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
-import nl.greaper.bnplanner.model.beatmap.BeatmapStatus.*
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
@@ -26,7 +32,7 @@ class AiessService(
         val databaseBeatmap = beatmapService.findBeatmap(event.osuId)
             ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
 
-        if (event.status == Disqualified || event.status == Popped) {
+        if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Popped) {
             val updatedGamemodes = databaseBeatmap.gamemodes.map { gamemode ->
                 gamemode.copy(nominators = gamemode.nominators.map { it.copy(hasNominated = false) })
             }
@@ -94,14 +100,14 @@ class AiessService(
 
     private fun getMessageIcon(status: BeatmapStatus): String {
         return when (status) {
-            Qualified -> NOMINATED_STATUS_ICON
-            Bubbled -> BUBBLED_STATUS_ICON
-            Disqualified -> DISQUALIFIED_STATUS_ICON
-            Popped -> POPPED_STATUS_ICON
-            Pending -> UPDATED_STATUS_ICON
-            Ranked -> RANKED_STATUS_ICON
-            Graved -> GRAVED_STATUS_ICON
-            Unfinished -> UNFINISHED_STATUS_ICON
+            BeatmapStatus.Qualified -> NOMINATED_STATUS_ICON
+            BeatmapStatus.Bubbled -> BUBBLED_STATUS_ICON
+            BeatmapStatus.Disqualified -> DISQUALIFIED_STATUS_ICON
+            BeatmapStatus.Popped -> POPPED_STATUS_ICON
+            BeatmapStatus.Pending -> UPDATED_STATUS_ICON
+            BeatmapStatus.Ranked -> RANKED_STATUS_ICON
+            BeatmapStatus.Graved -> GRAVED_STATUS_ICON
+            BeatmapStatus.Unfinished -> UNFINISHED_STATUS_ICON
         }
     }
 
