@@ -110,7 +110,7 @@ class OsuHttpClient(
         }
         val requestUri = "https://osu.ppy.sh/api/v2$uri"
 
-        log.info { "$method ==> $requestUri | $headers" }
+        log.info { "$method ==> $requestUri" }
 
         return rest.exchange(requestUri, method, request, String::class.java)
     }
