@@ -49,11 +49,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.named<fi.evident.gradle.beanstalk.BeanstalkPluginExtension>("beanstalk") {
+beanstalk {
     s3Endpoint = "s3-eu-west-1.amazonaws.com"
     beanstalkEndpoint = "elasticbeanstalk.eu-west-1.amazonaws.com"
-    tasks.named("deployments") {
-        tasks.named<fi.evident.gradle.beanstalk.BeanstalkDeployment>("production") {
+
+    deployments {
+        create("production") {
             file = tasks.bootWar
             application = "bnplanner"
             environment = "bnplanner-env"
