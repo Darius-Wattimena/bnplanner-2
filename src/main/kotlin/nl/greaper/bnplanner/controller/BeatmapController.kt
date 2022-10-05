@@ -145,14 +145,14 @@ class BeatmapController(
         return service.updateBeatmapStatus(osuApiToken, id, new)
     }
 
-    @PatchMapping("/{id}/note")
+    @PatchMapping("/{id}/note", consumes = ["text/plain"])
     @RolesAllowed(RolePermission.EDITOR)
     fun updateNote(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestBody new: String,
+        @RequestBody body: String,
         @PathVariable("id") id: String,
     ): Boolean {
-        return service.updateBeatmapNote(osuApiToken, id, new)
+        return service.updateBeatmapNote(osuApiToken, id, body)
     }
 
     @DeleteMapping("/{id}/delete")
