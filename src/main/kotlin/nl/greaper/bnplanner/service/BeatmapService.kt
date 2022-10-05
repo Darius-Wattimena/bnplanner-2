@@ -2,6 +2,7 @@ package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
 import nl.greaper.bnplanner.ADDED_NOMINATOR_ICON
+import nl.greaper.bnplanner.CHANGE_BEATMAP_NOTE_ICON
 import nl.greaper.bnplanner.CREATED_BEATMAP_ICON
 import nl.greaper.bnplanner.DELETED_BEATMAP_ICON
 import nl.greaper.bnplanner.REMOVED_NOMINATOR_ICON
@@ -204,6 +205,25 @@ class BeatmapService(
         dataSource.insertMany(convertedBeatmaps)
     }
 
+    fun updateBeatmapNote(osuApiToken: String, osuId: String, newNote: String): Boolean {
+        val databaseBeatmap = findBeatmap(osuId) ?: return false
+
+        if (databaseBeatmap.note == newNote) {
+            // Nothing to update
+            return true
+        }
+
+        val updatedBeatmap = databaseBeatmap.copy(
+            note = newNote,
+            dateUpdated = Instant.now()
+        )
+
+        dataSource.update(updatedBeatmap)
+        logBeatmapNoteChange(osuApiToken, updatedBeatmap)
+
+        return true
+    }
+
     fun updateBeatmapStatus(osuApiToken: String, osuId: String, newStatus: BeatmapStatus): Boolean {
         val databaseBeatmap = findBeatmap(osuId) ?: return false
 
@@ -262,29 +282,44 @@ class BeatmapService(
     fun logBeatmapAdded(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
 
-        discordClient.send(
+        discordClient.sendBeatmapUpdate(
             """$CREATED_BEATMAP_ICON **Created**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
             color = EmbedColor.GREEN,
-            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            beatmapId = beatmap.osuId,
+            editor = editor,
             confidential = true
         )
     }
 
     fun logBeatmapDelete(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
-
-        discordClient.send(
+        discordClient.sendBeatmapUpdate(
             """$DELETED_BEATMAP_ICON **Deleted**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
             color = EmbedColor.RED,
-            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            beatmapId = beatmap.osuId,
+            editor = editor,
+            confidential = true
+        )
+    }
+
+    fun logBeatmapNoteChange(osuApiToken: String, beatmap: Beatmap) {
+        val editor = userService.getEditor(osuApiToken)
+
+        discordClient.sendBeatmapUpdate(
+            """$CHANGE_BEATMAP_NOTE_ICON **Updated note**
+                ```${beatmap.note.replace("""\n  +""".toRegex(), "\n")}```
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+            """.prependIndent(),
+            color = EmbedColor.ORANGE,
+            beatmapId = beatmap.osuId,
+            editor = editor,
             confidential = true
         )
     }
@@ -292,14 +327,14 @@ class BeatmapService(
     fun logBeatmapStatusChange(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
 
-        discordClient.send(
+        discordClient.sendBeatmapUpdate(
             """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
             color = EmbedColor.ORANGE,
-            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            beatmapId = beatmap.osuId,
+            editor = editor,
             confidential = true
         )
     }
@@ -326,14 +361,14 @@ class BeatmapService(
             }$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
         }
 
-        discordClient.send(
+        discordClient.sendBeatmapUpdate(
             """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
             color = EmbedColor.BLUE,
-            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            beatmapId = beatmap.osuId,
+            editor = editor,
             confidential = false
         )
     }

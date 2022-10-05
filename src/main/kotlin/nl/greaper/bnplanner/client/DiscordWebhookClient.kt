@@ -2,12 +2,14 @@ package nl.greaper.bnplanner.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import nl.greaper.bnplanner.config.DiscordConfig
+import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedMessage
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.discord.Message
 import nl.greaper.bnplanner.model.discord.getValue
+import nl.greaper.bnplanner.service.UserService
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -23,6 +25,22 @@ class DiscordWebhookClient(
 
     private val rest = RestTemplate()
     private val headers = HttpHeaders()
+
+    fun sendBeatmapUpdate(
+        description: String,
+        color: EmbedColor,
+        beatmapId: String,
+        editor: User?,
+        confidential: Boolean
+    ) {
+        return send(
+            description = description,
+            color = color,
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmapId}l.jpg"),
+            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            confidential = confidential
+        )
+    }
 
     fun send(
         description: String,
