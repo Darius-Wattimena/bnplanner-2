@@ -23,8 +23,6 @@ import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapNominator
 import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.model.discord.EmbedColor
-import nl.greaper.bnplanner.model.discord.EmbedFooter
-import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
@@ -341,8 +339,8 @@ class BeatmapService(
 
     fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String) {
         val editor = userService.getEditor(osuApiToken)
-        val oldNominator = userService.findUserFromId(osuApiToken, oldNominatorId)
-        val newNominator = userService.findUserFromId(osuApiToken, newNominatorId)
+        val oldNominator = userService.findUserById(osuApiToken, oldNominatorId)
+        val newNominator = userService.findUserById(osuApiToken, newNominatorId)
 
         var nominatorChangesText = ""
 
@@ -410,10 +408,10 @@ class BeatmapService(
     }
 
     private fun Beatmap.toExposedBeatmap(osuApiToken: String): ExposedBeatmap? {
-        val mapper = userService.findUserFromId(osuApiToken, mapperId) ?: return null
+        val mapper = userService.findUserById(osuApiToken, mapperId) ?: return null
         val preparedGamemodes = gamemodes.map { entry ->
             val gamemodeNominators = entry.nominators.mapNotNull {
-                val nominatorUser = userService.findUserFromId(osuApiToken, it.nominatorId)
+                val nominatorUser = userService.findUserById(osuApiToken, it.nominatorId)
 
                 if (nominatorUser != null) {
                     ExposedBeatmapNominator(

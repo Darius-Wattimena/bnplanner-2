@@ -65,7 +65,7 @@ class JwtTokenFilter(
                 }
 
                 val osuId = claims.subject
-                val user = userService.findUserFromId(token, osuId)
+                val user = userService.findUserById(token, osuId)
 
                 if (user == null) {
                     // Only should end up here if the user that is trying to log in is restricted and never saved in the database

@@ -68,7 +68,7 @@ class UserService(
         return tempUser
     }
 
-    fun forceFindUserFromId(osuApiToken: String, osuId: String): User? {
+    fun forceFindUserById(osuApiToken: String, osuId: String): User? {
         val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
 
         if (osuUser == null) {
@@ -102,7 +102,7 @@ class UserService(
         return newUser
     }
 
-    fun findUserFromId(osuId: String): User? {
+    fun findUserById(osuId: String): User? {
         if (osuId == "0") {
             return User(
                 "0",
@@ -114,16 +114,16 @@ class UserService(
         return dataSource.findUser(osuId)
     }
 
-    fun findUserFromId(osuApiToken: String, osuId: String): User? {
+    fun findUserById(osuApiToken: String, osuId: String): User? {
         if (osuId == "-1" || osuId == "-2") return null
 
-        return findUserFromId(osuId) ?: createTemporaryUser(osuId)
+        return findUserById(osuId) ?: createTemporaryUser(osuId)
     }
 
     fun getEditor(osuApiToken: String): User? {
         val claims = parseJwtToken(osuApiToken) ?: return null
 
         val osuId = claims.subject
-        return findUserFromId(osuApiToken, osuId)
+        return findUserById(osuApiToken, osuId)
     }
 }
