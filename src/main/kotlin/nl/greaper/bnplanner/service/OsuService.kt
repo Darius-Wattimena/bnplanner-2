@@ -32,11 +32,13 @@ class OsuService(
         return body
     }
 
-    fun getAuthTokenByRefreshToken(refreshToken: String): AuthToken {
+    fun getAuthTokenByRefreshToken(refreshToken: String): AuthToken? {
         val response = client.refreshToken(refreshToken)
-        val body = response.body
+        val body = response?.body
 
-        check(response.statusCode.is2xxSuccessful && body != null) { "Couldn't get token from osu" }
+        if (response != null) {
+            check(response.statusCode.is2xxSuccessful && body != null) { "Couldn't get token from osu" }
+        }
 
         return body
     }
@@ -52,18 +54,27 @@ class OsuService(
             if (isExpired) {
                 val refreshedApiToken = getAuthTokenByRefreshToken(refreshToken)
                 osuTokenDataSource.deleteMany()
-                osuTokenDataSource.insertOne(refreshedApiToken)
 
-                return refreshedApiToken.access_token
+                if (refreshedApiToken != null) {
+                    osuTokenDataSource.insertOne(refreshedApiToken)
+
+                    return refreshedApiToken.access_token
+                }
+
+                return null
             } else {
                 return token
             }
         } else if (claims == null) {
             val refreshedApiToken = getAuthTokenByRefreshToken(refreshToken)
             osuTokenDataSource.deleteMany()
-            osuTokenDataSource.insertOne(refreshedApiToken)
+            if (refreshedApiToken != null) {
+                osuTokenDataSource.insertOne(refreshedApiToken)
 
-            return refreshedApiToken.access_token
+                return refreshedApiToken.access_token
+            }
+
+            return null
         }
 
         return null

@@ -34,7 +34,13 @@ class AuthService(
         try {
             val parsedToken = refreshToken.dropLast(1) // Somehow frontend always sends a trailing '='
             val authToken = osuService.getAuthTokenByRefreshToken(parsedToken)
-            return osuService.getUserContextByToken(authToken).also { logLogin(context = it, refresh = true) }
+            if (authToken != null) {
+                return osuService.getUserContextByToken(authToken)
+                    .also { logLogin(context = it, refresh = true) }
+            }
+
+            // Couldn't get auth token when refreshing
+            return null
         } catch (exception: Throwable) {
             logLogin(
                 context = null,

@@ -5,8 +5,14 @@ import io.jsonwebtoken.Jwts
 
 fun parseJwtToken(token: String): Claims? {
     return try {
-        val i = token.lastIndexOf('.')
-        val withoutSignature = token.substring(0, i + 1)
+        val parsedToken = if (token.startsWith("Bearer ")) {
+            token.removePrefix("Bearer ")
+        } else {
+            token
+        }
+
+        val i = parsedToken.lastIndexOf('.')
+        val withoutSignature = parsedToken.substring(0, i + 1)
 
         val untrusted = Jwts.parser().parseClaimsJwt(withoutSignature)
 

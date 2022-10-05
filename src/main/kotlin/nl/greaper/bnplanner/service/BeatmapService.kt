@@ -24,6 +24,7 @@ import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
+import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
@@ -203,6 +204,25 @@ class BeatmapService(
         dataSource.insertMany(convertedBeatmaps)
     }
 
+    fun updateBeatmapStatus(osuApiToken: String, osuId: String, newStatus: BeatmapStatus): Boolean {
+        val databaseBeatmap = findBeatmap(osuId) ?: return false
+
+        if (databaseBeatmap.status == newStatus) {
+            // Nothing to update
+            return true
+        }
+
+        val updatedBeatmap = databaseBeatmap.copy(
+            status = newStatus,
+            dateUpdated = Instant.now()
+        )
+
+        dataSource.update(updatedBeatmap)
+        logBeatmapStatusChange(osuApiToken, updatedBeatmap)
+
+        return true
+    }
+
     fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
         val databaseBeatmap = findBeatmap(osuId) ?: return null
 
@@ -263,6 +283,21 @@ class BeatmapService(
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
             color = EmbedColor.RED,
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+            confidential = true
+        )
+    }
+
+    fun logBeatmapStatusChange(osuApiToken: String, beatmap: Beatmap) {
+        val editor = userService.getEditor(osuApiToken)
+
+        discordClient.send(
+            """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}**
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+            """.prependIndent(),
+            color = EmbedColor.ORANGE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
             confidential = true

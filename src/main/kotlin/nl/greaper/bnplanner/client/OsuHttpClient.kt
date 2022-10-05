@@ -13,9 +13,11 @@ import nl.greaper.bnplanner.util.shouldSkipUser
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
 
@@ -55,7 +57,7 @@ class OsuHttpClient(
         return authRest.postForEntity(tokenUri, request)
     }
 
-    fun refreshToken(refreshToken: String): ResponseEntity<AuthToken> {
+    fun refreshToken(refreshToken: String): ResponseEntity<AuthToken>? {
         val preparedRefreshToken = RefreshToken(
             grant_type = "refresh_token",
             client_id = config.clientId.toInt(),
@@ -66,7 +68,16 @@ class OsuHttpClient(
         val body = objectMapper.writeValueAsString(preparedRefreshToken)
         val request = HttpEntity(body, authHeaders)
 
-        return authRest.postForEntity(tokenUri, request)
+        return try {
+            authRest.postForEntity(tokenUri, request)
+        } catch (ex: HttpClientErrorException) {
+            if (ex.statusCode == HttpStatus.UNAUTHORIZED) {
+                log.info { "[UNAUTHORIZED] User trying to login via their refresh token, but it isn't valid" }
+                null
+            } else {
+                throw ex
+            }
+        }
     }
 
     fun get(uri: String, osuApiToken: String, includeBearer: Boolean): ResponseEntity<String> {

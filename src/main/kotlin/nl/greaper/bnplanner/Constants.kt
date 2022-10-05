@@ -8,6 +8,7 @@ const val DISQUALIFIED_STATUS_ICON = "\uD83D\uDC94" // 💔
 const val POPPED_STATUS_ICON = "\uD83D\uDDEF" // 🗯️
 const val GRAVED_STATUS_ICON = "\uD83D\uDDD1" // 🗑️
 const val UNFINISHED_STATUS_ICON = "\uD83D\uDD28" // 🔨
+const val PENDING_STATUS_ICON = "⏳" // ⏳
 
 const val CREATED_BEATMAP_ICON = "\uD83C\uDF1F" // 🌟
 const val DELETED_BEATMAP_ICON = "\uD83D\uDC12" // 🐒
