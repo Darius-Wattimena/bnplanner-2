@@ -223,7 +223,7 @@ class BeatmapService(
         return true
     }
 
-    fun updateBeatmap(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
+    fun updateBeatmapNominator(osuApiToken: String, osuId: String, gamemode: Gamemode, oldNominator: String, newNominator: String): ExposedBeatmap? {
         val databaseBeatmap = findBeatmap(osuId) ?: return null
 
         val updatedBeatmap = updateBeatmapGamemode(databaseBeatmap, gamemode) { updatingGamemode ->

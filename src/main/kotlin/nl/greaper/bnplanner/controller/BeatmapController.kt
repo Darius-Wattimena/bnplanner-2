@@ -123,7 +123,7 @@ class BeatmapController(
         service.addBeatmap(osuApiToken, newBeatmap)
     }
 
-    @GetMapping("/{id}/{mode}/update")
+    @PatchMapping("/{id}/{mode}/nominator")
     @RolesAllowed(RolePermission.EDITOR)
     fun updateBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
@@ -132,7 +132,7 @@ class BeatmapController(
         @PathVariable("id") id: String,
         @PathVariable("mode") mode: Gamemode
     ): ExposedBeatmap? {
-        return service.updateBeatmap(osuApiToken, id, mode, old, new)
+        return service.updateBeatmapNominator(osuApiToken, id, mode, old, new)
     }
 
     @PatchMapping("/{id}/status")
