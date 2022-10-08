@@ -10,15 +10,21 @@ import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
 import nl.greaper.bnplanner.UPDATED_STATUS_ICON
 import nl.greaper.bnplanner.client.DiscordWebhookClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
+import nl.greaper.bnplanner.datasource.UserDataSource
 import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.Role
+import nl.greaper.bnplanner.model.User
+import nl.greaper.bnplanner.model.UserGamemode
 import nl.greaper.bnplanner.model.aiess.AiessBeatmapEvent
 import nl.greaper.bnplanner.model.aiess.AiessResponse
 import nl.greaper.bnplanner.model.aiess.AiessUserEvent
+import nl.greaper.bnplanner.model.aiess.AiessUserEventType
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
+import nl.greaper.bnplanner.model.osu.MeGroup
 import org.springframework.stereotype.Service
 
 @Service
@@ -26,6 +32,7 @@ class AiessService(
     private val beatmapService: BeatmapService,
     private val beatmapDataSource: BeatmapDataSource,
     private val userService: UserService,
+    private val userDataSource: UserDataSource,
     private val discordClient: DiscordWebhookClient
 ) {
     fun processAiessBeatmapEvent(event: AiessBeatmapEvent): AiessResponse {
@@ -82,7 +89,6 @@ class AiessService(
     }
 
     private fun logNomination(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String, gamemode: Gamemode? = null) {
-        if (beatmap.status == newStatus) return
         val messageIcon = getMessageIcon(newStatus)
         val gamemodeText = gamemode?.let { "[${it.toReadable()}]" } ?: ""
 
@@ -111,8 +117,80 @@ class AiessService(
         }
     }
 
-    fun processAiessUserEvent(event: AiessUserEvent): Boolean {
-        return false
+    fun processAiessUserEvent(event: AiessUserEvent): AiessResponse {
+        val changingUser = userService.findUserById(event.userId)
+            ?: userService.createTemporaryUser(event.userId)
+        val oldGamemode = changingUser.gamemodes.find { it.gamemode == event.gamemode }
+
+        when (event.type) {
+            AiessUserEventType.add -> {
+                if (MeGroup.SupportedGroups.contains(event.groupId)) {
+                    val userRole = Role.fromOsuId(event.groupId)
+
+                    // Check if the usergroup needs to be replaced or if we can just add a new one
+                    val updateUser = if (oldGamemode != null) {
+                        val updatedGamemode = oldGamemode.copy(role = userRole)
+                        val untouchedGamemodes = changingUser.gamemodes.filter { it.gamemode != event.gamemode }
+
+                        changingUser.copy(gamemodes = untouchedGamemodes + updatedGamemode)
+                            .also { logUserMove(it, event, oldGamemode, updatedGamemode) }
+                    } else {
+                        val newGamemode = UserGamemode(event.gamemode, userRole)
+                        changingUser.copy(gamemodes = changingUser.gamemodes + newGamemode)
+                            .also { logUserMove(it, event, null, newGamemode) }
+                    }
+
+                    userDataSource.saveUser(updateUser)
+                }
+            }
+            AiessUserEventType.remove -> {
+                if (oldGamemode != null) {
+                    val updateUser = changingUser.copy(gamemodes = changingUser.gamemodes.filter { it.gamemode != event.gamemode })
+
+                    userDataSource.saveUser(updateUser)
+
+                    logUserMove(updateUser, event, oldGamemode, null)
+                }
+            }
+        }
+
+        return AiessResponse(true)
+    }
+
+    fun logUserMove(user: User, event: AiessUserEvent, oldGamemode: UserGamemode?, updatedGamemode: UserGamemode?) {
+        val color = if (event.type == AiessUserEventType.add) {
+            EmbedColor.GREEN
+        } else {
+            EmbedColor.RED
+        }
+
+        val topLine = if (oldGamemode != null && updatedGamemode != null) {
+            "Moved [${user.username}](https://osu.ppy.sh/users/${user.osuId}) from ${oldGamemode.role} to ${updatedGamemode.role}"
+        } else if (updatedGamemode != null) {
+            "Added [${user.username}](https://osu.ppy.sh/users/${user.osuId}) to ${updatedGamemode.role}"
+        } else if (oldGamemode != null) {
+            "Removed [${user.username}](https://osu.ppy.sh/users/${user.osuId}) from ${oldGamemode.role}"
+        } else {
+            "ERROR? User moved happened but no clue what"
+        }
+
+        val text = if (event.type == AiessUserEventType.add) {
+            """**$topLine**
+                Gamemode ${event.gamemode}
+            """.prependIndent()
+        } else {
+            """**$topLine**
+                Gamemode ${event.gamemode}
+            """.prependIndent()
+        }
+
+        discordClient.send(
+            description = text,
+            color = color,
+            thumbnail = EmbedThumbnail("https://a.ppy.sh/${user.osuId}"),
+            EmbedFooter("Aiess", "https://a.ppy.sh/${user.osuId}"),
+            confidential = true
+        )
     }
 }
 

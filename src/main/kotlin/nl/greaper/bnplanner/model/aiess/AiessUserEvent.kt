@@ -1,16 +1,15 @@
 package nl.greaper.bnplanner.model.aiess
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import nl.greaper.bnplanner.model.Gamemode
 
 data class AiessUserEvent(
     val type: AiessUserEventType,
-    @JsonProperty("userId")
-    val osuUserId: String,
-    @JsonProperty("groupId")
-    val osuGroupId: String
+    val userId: String,
+    val groupId: String,
+    val gamemode: Gamemode
 )
 
 enum class AiessUserEventType {
-    ADD,
-    REMOVE
+    add,
+    remove
 }

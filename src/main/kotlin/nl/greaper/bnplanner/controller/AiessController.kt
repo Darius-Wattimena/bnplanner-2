@@ -3,6 +3,7 @@ package nl.greaper.bnplanner.controller
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.aiess.AiessBeatmapEvent
 import nl.greaper.bnplanner.model.aiess.AiessResponse
+import nl.greaper.bnplanner.model.aiess.AiessUserEvent
 import nl.greaper.bnplanner.service.AiessService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,6 +22,19 @@ class AiessController(
     @RolesAllowed(RolePermission.BOT, RolePermission.DEVELOPER)
     fun beatmapEvent(@RequestBody body: AiessBeatmapEvent): ResponseEntity<AiessResponse> {
         val result = service.processAiessBeatmapEvent(body)
+
+        return if (result.error != null) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(result)
+        } else {
+            ResponseEntity.ok(result)
+        }
+    }
+
+    @PostMapping("/event/user")
+    @RolesAllowed(RolePermission.BOT, RolePermission.DEVELOPER)
+    fun userEvent(@RequestBody body: AiessUserEvent): ResponseEntity<AiessResponse> {
+        val result = service.processAiessUserEvent(body)
 
         return if (result.error != null) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST)
