@@ -47,6 +47,7 @@ class JwtTokenFilter(
                     authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                     SecurityContextHolder.getContext().authentication = authentication
                     chain.doFilter(request, response)
+                    return
                 }
             }
             header.startsWith("Bearer ") -> {
