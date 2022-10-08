@@ -10,6 +10,7 @@ import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.UserGamemode
 import nl.greaper.bnplanner.model.UserRecalculate
+import nl.greaper.bnplanner.model.aiess.AiessUserEvent
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
@@ -59,6 +60,10 @@ class UserService(
                 }
             }?.flatten() ?: emptyList()
         )
+    }
+
+    fun createUserByAiessEvent(event: AiessUserEvent): User {
+        return User(event.userId, event.username, emptyList())
     }
 
     fun createTemporaryUser(osuId: String): User {

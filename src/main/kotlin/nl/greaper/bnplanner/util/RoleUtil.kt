@@ -9,14 +9,13 @@ fun getHighestRole(osuRoles: Set<Role>): Role {
         Role.NominationAssessment in osuRoles -> Role.NominationAssessment
         Role.Nominator in osuRoles -> Role.Nominator
         Role.Probation in osuRoles -> Role.Probation
-        Role.Loved in osuRoles -> Role.Loved
         else -> Role.Mapper
     }
 }
 
 fun getRolePermissions(osuRole: Role): RolePermission {
     val permissions = when (osuRole) {
-        Role.Mapper, Role.Loved -> setOf(RolePermission.VIEWER)
+        Role.Mapper -> setOf(RolePermission.VIEWER)
         Role.Nominator, Role.Probation -> setOf(RolePermission.VIEWER, RolePermission.EDITOR)
         Role.NominationAssessment -> setOf(RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
     }

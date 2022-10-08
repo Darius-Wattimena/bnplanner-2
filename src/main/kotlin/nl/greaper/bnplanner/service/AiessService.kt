@@ -25,6 +25,7 @@ import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.osu.MeGroup
+import nl.greaper.bnplanner.model.toReadableName
 import org.springframework.stereotype.Service
 
 @Service
@@ -119,22 +120,26 @@ class AiessService(
 
     fun processAiessUserEvent(event: AiessUserEvent): AiessResponse {
         val changingUser = userService.findUserById(event.userId)
-            ?: userService.createTemporaryUser(event.userId)
-        val oldGamemode = changingUser.gamemodes.find { it.gamemode == event.gamemode }
+            ?: userService.createUserByAiessEvent(event)
+        val userRole = Role.fromOsuId(event.groupId)
+        val oldGamemode = changingUser.gamemodes.find {
+            it.gamemode == event.gamemode && it.role == userRole
+        }
 
         when (event.type) {
             AiessUserEventType.add -> {
                 if (MeGroup.SupportedGroups.contains(event.groupId)) {
-                    val userRole = Role.fromOsuId(event.groupId)
 
                     // Check if the usergroup needs to be replaced or if we can just add a new one
                     val updateUser = if (oldGamemode != null) {
+                        // User most likely moved to a different role in the gamemode, update it
                         val updatedGamemode = oldGamemode.copy(role = userRole)
                         val untouchedGamemodes = changingUser.gamemodes.filter { it.gamemode != event.gamemode }
 
                         changingUser.copy(gamemodes = untouchedGamemodes + updatedGamemode)
                             .also { logUserMove(it, event, oldGamemode, updatedGamemode) }
                     } else {
+                        // User is not part of this gamemode, add them
                         val newGamemode = UserGamemode(event.gamemode, userRole)
                         changingUser.copy(gamemodes = changingUser.gamemodes + newGamemode)
                             .also { logUserMove(it, event, null, newGamemode) }
@@ -151,6 +156,7 @@ class AiessService(
 
                     logUserMove(updateUser, event, oldGamemode, null)
                 }
+                // User has been removed from a gamemode we don't know anything about
             }
         }
 
@@ -165,11 +171,11 @@ class AiessService(
         }
 
         val topLine = if (oldGamemode != null && updatedGamemode != null) {
-            "Moved [${user.username}](https://osu.ppy.sh/users/${user.osuId}) from ${oldGamemode.role} to ${updatedGamemode.role}"
+            "Moved [${user.username}](https://osu.ppy.sh/users/${user.osuId})\nfrom ${oldGamemode.role.toReadableName()} to ${updatedGamemode.role.toReadableName()}"
         } else if (updatedGamemode != null) {
-            "Added [${user.username}](https://osu.ppy.sh/users/${user.osuId}) to ${updatedGamemode.role}"
+            "Added [${user.username}](https://osu.ppy.sh/users/${user.osuId})\nto ${updatedGamemode.role.toReadableName()}"
         } else if (oldGamemode != null) {
-            "Removed [${user.username}](https://osu.ppy.sh/users/${user.osuId}) from ${oldGamemode.role}"
+            "Removed [${user.username}](https://osu.ppy.sh/users/${user.osuId})\nfrom ${oldGamemode.role.toReadableName()}"
         } else {
             "ERROR? User moved happened but no clue what"
         }
@@ -188,7 +194,7 @@ class AiessService(
             description = text,
             color = color,
             thumbnail = EmbedThumbnail("https://a.ppy.sh/${user.osuId}"),
-            EmbedFooter("Aiess", "https://a.ppy.sh/${user.osuId}"),
+            EmbedFooter("Aiess"),
             confidential = true
         )
     }
