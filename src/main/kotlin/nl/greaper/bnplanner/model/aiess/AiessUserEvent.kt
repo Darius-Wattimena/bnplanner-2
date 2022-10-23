@@ -33,7 +33,7 @@ data class AiessUserEvent(
     /**
      * osu | taiko | fruits | mania
      */
-    @JsonProperty("gameMode")
+    @JsonProperty("groupMode")
     val gamemode: Gamemode
 )
 
