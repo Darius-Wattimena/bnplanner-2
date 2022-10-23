@@ -1,11 +1,11 @@
 package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
-import nl.greaper.bnplanner.BUBBLED_STATUS_ICON
-import nl.greaper.bnplanner.DISQUALIFIED_STATUS_ICON
+import nl.greaper.bnplanner.NOMINATE_STATUS_ICON
+import nl.greaper.bnplanner.DISQUALIFY_STATUS_ICON
 import nl.greaper.bnplanner.GRAVED_STATUS_ICON
-import nl.greaper.bnplanner.NOMINATED_STATUS_ICON
-import nl.greaper.bnplanner.POPPED_STATUS_ICON
+import nl.greaper.bnplanner.QUALIFY_STATUS_ICON
+import nl.greaper.bnplanner.RESET_STATUS_ICON
 import nl.greaper.bnplanner.RANKED_STATUS_ICON
 import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
 import nl.greaper.bnplanner.UPDATED_STATUS_ICON
@@ -50,7 +50,7 @@ class AiessService(
                 val databaseBeatmap = beatmapService.findBeatmap(event.beatmapId)
                     ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
 
-                if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Popped) {
+                if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Reset) {
                     val updatedGamemodes = databaseBeatmap.gamemodes.map { gamemode ->
                         gamemode.copy(nominators = gamemode.nominators.map { it.copy(hasNominated = false) })
                     }
@@ -222,10 +222,10 @@ class AiessService(
 
     private fun getMessageIcon(status: BeatmapStatus): String {
         return when (status) {
-            BeatmapStatus.Qualified -> NOMINATED_STATUS_ICON
-            BeatmapStatus.Bubbled -> BUBBLED_STATUS_ICON
-            BeatmapStatus.Disqualified -> DISQUALIFIED_STATUS_ICON
-            BeatmapStatus.Popped -> POPPED_STATUS_ICON
+            BeatmapStatus.Qualified -> QUALIFY_STATUS_ICON
+            BeatmapStatus.Nominated -> NOMINATE_STATUS_ICON
+            BeatmapStatus.Disqualified -> DISQUALIFY_STATUS_ICON
+            BeatmapStatus.Reset -> RESET_STATUS_ICON
             BeatmapStatus.Pending -> UPDATED_STATUS_ICON
             BeatmapStatus.Ranked -> RANKED_STATUS_ICON
             BeatmapStatus.Graved -> GRAVED_STATUS_ICON
@@ -236,10 +236,10 @@ class AiessService(
     private fun getMessageColor(status: BeatmapStatus): EmbedColor {
         return when (status) {
             BeatmapStatus.Qualified,
-            BeatmapStatus.Bubbled,
+            BeatmapStatus.Nominated,
             BeatmapStatus.Pending -> EmbedColor.BLUE
             BeatmapStatus.Disqualified,
-            BeatmapStatus.Popped -> EmbedColor.ORANGE
+            BeatmapStatus.Reset -> EmbedColor.ORANGE
             BeatmapStatus.Ranked -> EmbedColor.GREEN
             BeatmapStatus.Graved -> EmbedColor.GREY
             BeatmapStatus.Unfinished -> EmbedColor.PURPLE
