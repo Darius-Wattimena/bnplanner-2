@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.model.aiess
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 
@@ -7,7 +8,7 @@ data class AiessBeatmapEvent(
     /**
      * The osu ID of the beatmap.
      */
-    val beatmapId: String,
+    val beatmapSetId: String,
 
     /**
      * The current status of the beatmap.
@@ -25,10 +26,11 @@ data class AiessBeatmapEvent(
     /**
      * The current username of the user in osu.
      */
-    val userName: String?,
+    @JsonProperty("userName")
+    val username: String?,
 
     /**
      * The [Gamemode] where the nominator is being updated.
      */
-    val gamemode: Gamemode?
+    val modes: List<Gamemode>
 )

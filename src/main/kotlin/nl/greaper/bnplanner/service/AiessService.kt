@@ -1,12 +1,12 @@
 package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
-import nl.greaper.bnplanner.NOMINATE_STATUS_ICON
 import nl.greaper.bnplanner.DISQUALIFY_STATUS_ICON
 import nl.greaper.bnplanner.GRAVED_STATUS_ICON
+import nl.greaper.bnplanner.NOMINATE_STATUS_ICON
 import nl.greaper.bnplanner.QUALIFY_STATUS_ICON
-import nl.greaper.bnplanner.RESET_STATUS_ICON
 import nl.greaper.bnplanner.RANKED_STATUS_ICON
+import nl.greaper.bnplanner.RESET_STATUS_ICON
 import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
 import nl.greaper.bnplanner.UPDATED_STATUS_ICON
 import nl.greaper.bnplanner.client.DiscordWebhookClient
@@ -29,6 +29,7 @@ import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.osu.MeGroup
 import nl.greaper.bnplanner.model.toReadableName
+import nl.greaper.bnplanner.util.toReadableName
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -44,10 +45,45 @@ class AiessService(
 
     private val instantStatus = listOf(BeatmapStatus.Ranked, BeatmapStatus.Graved, BeatmapStatus.Pending, BeatmapStatus.Unfinished)
 
+    fun processAiessBeatmapGamemodeEvent(databaseBeatmap: Beatmap, status: BeatmapStatus, userId: String, username: String, gamemodes: List<Gamemode>): Beatmap {
+        val changingGamemodes = gamemodes.map { gamemode ->
+            databaseBeatmap.gamemodes.find { it.gamemode == gamemode }
+                ?: BeatmapGamemode(
+                    gamemode = gamemode,
+                    nominators = listOf(
+                        BeatmapNominator("0", false),
+                        BeatmapNominator("0", false)
+                    ),
+                    isReady = false
+                )
+        }
+
+        val updatedBeatmap = beatmapService.updateBeatmapGamemodes(databaseBeatmap, changingGamemodes) { updatingGamemode ->
+            val (currentFirstNominator, currentSecondNominator) = updatingGamemode.nominators.let { it[0] to it[1] }
+
+            val newNominators = determineNominators(
+                currentFirstNominator = currentFirstNominator,
+                currentSecondNominator = currentSecondNominator,
+                beatmapStatus = status,
+                userId = userId,
+                username = username,
+                databaseBeatmap = databaseBeatmap,
+                updatingGamemode = updatingGamemode
+            )
+
+            updatingGamemode.copy(nominators = newNominators)
+        }
+
+        return updatedBeatmap.copy(
+            status = status,
+            dateUpdated = Instant.now()
+        )
+    }
+
     fun processAiessBeatmapEvent(event: AiessBeatmapEvent): AiessResponse {
         if (instantStatus.none { it == event.status }) {
-            if (event.userId != null && event.userName != null) {
-                val databaseBeatmap = beatmapService.findBeatmap(event.beatmapId)
+            if (event.userId != null && event.username != null) {
+                val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
                     ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
 
                 if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Reset) {
@@ -55,7 +91,7 @@ class AiessService(
                         gamemode.copy(nominators = gamemode.nominators.map { it.copy(hasNominated = false) })
                     }
 
-                    logNomination(databaseBeatmap, event.status, event.userId, event.userName)
+                    logNomination(databaseBeatmap, event.status, event.userId, event.username)
 
                     beatmapDataSource.update(
                         databaseBeatmap.copy(
@@ -66,43 +102,20 @@ class AiessService(
                     return AiessResponse(true)
                 }
 
-                if (event.gamemode != null) {
-                    val changingGamemode = databaseBeatmap.gamemodes.find { it.gamemode == event.gamemode }
-                        // TODO instead of throwing an error we should just register the beatmap to the site
-                        ?: return AiessResponse(false, "Gamemode isn't registered on the nomination planner")
-
-                    val updatedBeatmap = beatmapService.updateBeatmapGamemode(databaseBeatmap, changingGamemode) { updatingGamemode ->
-                        val (currentFirstNominator, currentSecondNominator) = updatingGamemode.nominators.let { it[0] to it[1] }
-
-                        val newNominators = determineNominators(
-                            currentFirstNominator = currentFirstNominator,
-                            currentSecondNominator = currentSecondNominator,
-                            beatmapStatus = event.status,
-                            userId = event.userId,
-                            username = event.userName,
-                            databaseBeatmap = databaseBeatmap,
-                            updatingGamemode = updatingGamemode
-                        )
-
-                        updatingGamemode.copy(nominators = newNominators)
+                if (event.modes.isEmpty()) {
+                    event.modes.map {
+                        processAiessBeatmapGamemodeEvent(databaseBeatmap, event.status, event.userId, event.username, event.modes)
                     }
-
-                    beatmapDataSource.update(
-                        updatedBeatmap.copy(
-                            status = event.status,
-                            dateUpdated = Instant.now()
-                        )
-                    )
 
                     return AiessResponse(true)
                 }
 
-                return AiessResponse(false, "A gamemode needs to be provided")
+                return AiessResponse(false, "No modes are provided")
             }
 
             return AiessResponse(false, "A userId or userName needs to be provided when the beatmap isn't ranked")
         } else {
-            val databaseBeatmap = beatmapService.findBeatmap(event.beatmapId)
+            val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
                 ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
 
             val now = Instant.now()
@@ -206,12 +219,12 @@ class AiessService(
 
     private fun logNomination(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String, username: String, gamemode: Gamemode? = null) {
         val messageIcon = getMessageIcon(newStatus)
-        val gamemodeText = gamemode?.let { "[${it.toReadable()}]" } ?: ""
+        val gamemodeText = gamemode?.let { gamemode.toReadableName() } ?: ""
 
         discordClient.send(
-            """**$messageIcon Updated status to $newStatus $gamemodeText**
+            """**$messageIcon Updated status to $newStatus**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by ${beatmap.mapper}
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [$gamemodeText]
             """.prependIndent(),
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),

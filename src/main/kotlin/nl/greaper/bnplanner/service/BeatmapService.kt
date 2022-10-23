@@ -28,6 +28,7 @@ import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
+import nl.greaper.bnplanner.util.toReadableName
 import org.bson.conversions.Bson
 import org.litote.kmongo.and
 import org.litote.kmongo.bson
@@ -277,6 +278,15 @@ class BeatmapService(
         return updateBeatmapGamemode(beatmap, updatingGamemode, new)
     }
 
+    fun updateBeatmapGamemodes(beatmap: Beatmap, updatingGamemodes: List<BeatmapGamemode>, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
+        var updateBeatmap = beatmap
+        updatingGamemodes.forEach {
+            updateBeatmap = updateBeatmapGamemode(updateBeatmap, it, new)
+        }
+
+        return updateBeatmap
+    }
+
     fun updateBeatmapGamemode(beatmap: Beatmap, updatingGamemode: BeatmapGamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
         return beatmap.copy(
             gamemodes = beatmap.gamemodes - updatingGamemode + new(updatingGamemode),
@@ -372,10 +382,9 @@ class BeatmapService(
         val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
 
         discordClient.send(
-            """**${gamemode.toReadableName()} Nominator Update:**
-                $nominatorChangesText
+            """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [${gamemode.toReadableName()}]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -392,10 +401,9 @@ class BeatmapService(
         val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
 
         discordClient.sendBeatmapUpdate(
-            """**${gamemode.toReadableName()} Nominator Update:**
-                $nominatorChangesText
+            """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [${gamemode.toReadableName()}]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
@@ -475,14 +483,5 @@ class BeatmapService(
             dateUpdated = dateUpdated,
             dateRanked = dateRanked
         )
-    }
-
-    fun Gamemode.toReadableName(): String {
-        return when (this) {
-            Gamemode.osu -> "osu!"
-            Gamemode.taiko -> "osu!taiko"
-            Gamemode.fruits -> "osu!catch"
-            Gamemode.mania -> "osu!mania"
-        }
     }
 }
