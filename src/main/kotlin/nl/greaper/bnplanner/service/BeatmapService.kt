@@ -11,6 +11,7 @@ import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.PageLimit
+import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapNominator
@@ -23,6 +24,8 @@ import nl.greaper.bnplanner.model.beatmap.ExposedBeatmapNominator
 import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.model.discord.EmbedColor
+import nl.greaper.bnplanner.model.discord.EmbedFooter
+import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import org.bson.conversions.Bson
@@ -49,7 +52,7 @@ class BeatmapService(
     }
 
     fun findExposedBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
-        return dataSource.findById(id)?.toExposedBeatmap(osuApiToken)
+        return dataSource.findById(id)?.toExposedBeatmap()
     }
 
     fun deleteBeatmap(osuApiToken: String, osuId: String) {
@@ -87,7 +90,7 @@ class BeatmapService(
             setupFilter(artist, title, mapper, status, nominators, page),
             from,
             to
-        ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
+        ).mapNotNull { it.toExposedBeatmap() }
     }
 
     fun findBeatmaps(
@@ -105,7 +108,7 @@ class BeatmapService(
             setupFilter(artist, title, mapper, status, nominators, page),
             pageNumber,
             pageLimit
-        ).mapNotNull { it.toExposedBeatmap(osuApiToken) }
+        ).mapNotNull { it.toExposedBeatmap() }
     }
 
     fun addBeatmap(osuApiToken: String, input: NewBeatmap) {
@@ -263,14 +266,18 @@ class BeatmapService(
         } ?: return null
 
         dataSource.update(updatedBeatmap)
-        logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator)
+        logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator, gamemode)
 
-        return updatedBeatmap.toExposedBeatmap(osuApiToken)
+        return updatedBeatmap.toExposedBeatmap()
     }
 
     fun updateBeatmapGamemode(beatmap: Beatmap, gamemode: Gamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap? {
         val updatingGamemode = beatmap.gamemodes.find { it.gamemode == gamemode } ?: return null
 
+        return updateBeatmapGamemode(beatmap, updatingGamemode, new)
+    }
+
+    fun updateBeatmapGamemode(beatmap: Beatmap, updatingGamemode: BeatmapGamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
         return beatmap.copy(
             gamemodes = beatmap.gamemodes - updatingGamemode + new(updatingGamemode),
             dateUpdated = Instant.now()
@@ -337,30 +344,56 @@ class BeatmapService(
         )
     }
 
-    fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String) {
-        val editor = userService.getEditor(osuApiToken)
-        val oldNominator = userService.findUserById(osuApiToken, oldNominatorId)
-        val newNominator = userService.findUserById(osuApiToken, newNominatorId)
-
+    private fun getChangedNominatorText(newNominator: User?, oldNominator: User?): String {
         var nominatorChangesText = ""
 
-        if (newNominatorId != "0") {
-            nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator?.username}](https://osu.ppy.sh/users/${newNominator?.osuId})**"
+        if (newNominator != null && newNominator.osuId != "0") {
+            nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator.username}](https://osu.ppy.sh/users/${newNominator.osuId})**"
         }
 
-        if (oldNominatorId != "0") {
-            nominatorChangesText += "${
-            // Add a \n if needed
-            if (nominatorChangesText != "") {
+        if (oldNominator != null && oldNominator.osuId != "0") {
+            val optionalNewLine = if (nominatorChangesText != "") {
+                // Add a \n if we added a nominator
                 "\n"
             } else {
                 ""
             }
-            }$REMOVED_NOMINATOR_ICON **Removed [${oldNominator?.username}](https://osu.ppy.sh/users/${oldNominator?.osuId})**"
+
+            nominatorChangesText += "$optionalNewLine$REMOVED_NOMINATOR_ICON **Removed [${oldNominator.username}](https://osu.ppy.sh/users/${oldNominator.osuId})**"
         }
 
+        return nominatorChangesText
+    }
+
+    fun logAiessUpdatedNominator(beatmap: Beatmap, oldNominatorId: String, newNominatorId: String, gamemode: Gamemode) {
+        val oldNominator = userService.findUserById(oldNominatorId)
+        val newNominator = userService.findUserById(newNominatorId)
+
+        val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
+
+        discordClient.send(
+            """**${gamemode.toReadableName()} Nominator Update:**
+                $nominatorChangesText
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+            """.prependIndent(),
+            color = EmbedColor.BLUE,
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = EmbedFooter("Aiess"),
+            confidential = false
+        )
+    }
+
+    fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String, gamemode: Gamemode) {
+        val editor = userService.getEditor(osuApiToken)
+        val oldNominator = userService.findUserById(oldNominatorId)
+        val newNominator = userService.findUserById(newNominatorId)
+
+        val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
+
         discordClient.sendBeatmapUpdate(
-            """$nominatorChangesText
+            """**${gamemode.toReadableName()} Nominator Update:**
+                $nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
             """.prependIndent(),
@@ -407,11 +440,11 @@ class BeatmapService(
         )
     }
 
-    private fun Beatmap.toExposedBeatmap(osuApiToken: String): ExposedBeatmap? {
-        val mapper = userService.findUserById(osuApiToken, mapperId) ?: return null
+    private fun Beatmap.toExposedBeatmap(): ExposedBeatmap? {
+        val mapper = userService.findUserById(mapperId) ?: return null
         val preparedGamemodes = gamemodes.map { entry ->
             val gamemodeNominators = entry.nominators.mapNotNull {
-                val nominatorUser = userService.findUserById(osuApiToken, it.nominatorId)
+                val nominatorUser = userService.findUserById(it.nominatorId)
 
                 if (nominatorUser != null) {
                     ExposedBeatmapNominator(
@@ -442,5 +475,14 @@ class BeatmapService(
             dateUpdated = dateUpdated,
             dateRanked = dateRanked
         )
+    }
+
+    fun Gamemode.toReadableName(): String {
+        return when(this) {
+            Gamemode.osu -> "osu!"
+            Gamemode.taiko -> "osu!taiko"
+            Gamemode.fruits -> "osu!catch"
+            Gamemode.mania -> "osu!mania"
+        }
     }
 }

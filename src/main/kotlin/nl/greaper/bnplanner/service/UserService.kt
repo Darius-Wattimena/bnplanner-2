@@ -108,6 +108,8 @@ class UserService(
     }
 
     fun findUserById(osuId: String): User? {
+        if (osuId == "-1" || osuId == "-2") return null
+
         if (osuId == "0") {
             return User(
                 "0",
@@ -119,16 +121,10 @@ class UserService(
         return dataSource.findUser(osuId)
     }
 
-    fun findUserById(osuApiToken: String, osuId: String): User? {
-        if (osuId == "-1" || osuId == "-2") return null
-
-        return findUserById(osuId) ?: createTemporaryUser(osuId)
-    }
-
     fun getEditor(osuApiToken: String): User? {
         val claims = parseJwtToken(osuApiToken) ?: return null
 
         val osuId = claims.subject
-        return findUserById(osuApiToken, osuId)
+        return findUserById(osuId)
     }
 }

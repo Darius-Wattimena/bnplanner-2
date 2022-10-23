@@ -9,7 +9,6 @@ import nl.greaper.bnplanner.model.discord.EmbedMessage
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.discord.Message
 import nl.greaper.bnplanner.model.discord.getValue
-import nl.greaper.bnplanner.service.UserService
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
