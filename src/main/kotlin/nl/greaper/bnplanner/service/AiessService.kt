@@ -57,16 +57,18 @@ class AiessService(
 
                     logNomination(databaseBeatmap, event.status, event.userId, event.userName)
 
-                    beatmapDataSource.update(databaseBeatmap.copy(
-                        gamemodes = updatedGamemodes,
-                        dateUpdated = Instant.now()
-                    ))
+                    beatmapDataSource.update(
+                        databaseBeatmap.copy(
+                            gamemodes = updatedGamemodes,
+                            dateUpdated = Instant.now()
+                        )
+                    )
                     return AiessResponse(true)
                 }
 
                 if (event.gamemode != null) {
                     val changingGamemode = databaseBeatmap.gamemodes.find { it.gamemode == event.gamemode }
-                    // TODO instead of throwing an error we should just register the beatmap to the site
+                        // TODO instead of throwing an error we should just register the beatmap to the site
                         ?: return AiessResponse(false, "Gamemode isn't registered on the nomination planner")
 
                     val updatedBeatmap = beatmapService.updateBeatmapGamemode(databaseBeatmap, changingGamemode) { updatingGamemode ->
@@ -85,10 +87,12 @@ class AiessService(
                         updatingGamemode.copy(nominators = newNominators)
                     }
 
-                    beatmapDataSource.update(updatedBeatmap.copy(
-                        status = event.status,
-                        dateUpdated = Instant.now()
-                    ))
+                    beatmapDataSource.update(
+                        updatedBeatmap.copy(
+                            status = event.status,
+                            dateUpdated = Instant.now()
+                        )
+                    )
 
                     return AiessResponse(true)
                 }
@@ -103,11 +107,13 @@ class AiessService(
 
             val now = Instant.now()
 
-            beatmapDataSource.update(databaseBeatmap.copy(
-                status = event.status,
-                dateUpdated = now,
-                dateRanked = now
-            ))
+            beatmapDataSource.update(
+                databaseBeatmap.copy(
+                    status = event.status,
+                    dateUpdated = now,
+                    dateRanked = now
+                )
+            )
             logInstantStatus(databaseBeatmap, event.status)
 
             return AiessResponse(true)

@@ -478,7 +478,7 @@ class BeatmapService(
     }
 
     fun Gamemode.toReadableName(): String {
-        return when(this) {
+        return when (this) {
             Gamemode.osu -> "osu!"
             Gamemode.taiko -> "osu!taiko"
             Gamemode.fruits -> "osu!catch"
