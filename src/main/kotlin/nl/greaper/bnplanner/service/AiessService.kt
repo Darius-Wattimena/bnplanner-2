@@ -139,6 +139,13 @@ class AiessService(
                 }
 
                 if (event.modes.isNotEmpty()) {
+                    val nominator = userService.findUserById(event.userId)
+
+                    if (nominator == null) {
+                        val newNominator = User(event.userId, event.username, event.modes.map { UserGamemode(it, Role.Nominator) })
+                        userDataSource.saveUser(newNominator)
+                    }
+
                     processAiessBeatmapGamemodeEvent(databaseBeatmap, event.status, event.userId, event.username, event.modes)
 
                     return AiessResponse(true)
