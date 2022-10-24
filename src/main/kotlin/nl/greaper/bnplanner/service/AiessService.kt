@@ -78,7 +78,7 @@ class AiessService(
         beatmapDataSource.update(updatedBeatmap)
     }
 
-    fun createFallbackBeatmap(event: AiessBeatmapEvent, userId: String, username: String): Beatmap {
+    fun createFallbackBeatmap(event: AiessBeatmapEvent, userId: String?, username: String?): Beatmap {
         val addDate = Instant.now()
 
         val preparedGamemodes = event.modes.map { mode ->
@@ -141,7 +141,7 @@ class AiessService(
             return AiessResponse(false, "A userId or userName needs to be provided when the beatmap isn't ranked")
         } else {
             val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
-                ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
+                ?: createFallbackBeatmap(event, null, null)
 
             val now = Instant.now()
 
@@ -242,7 +242,13 @@ class AiessService(
         )
     }
 
-    private fun logBeatmapAdded(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String, username: String) {
+    private fun logBeatmapAdded(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String?, username: String?) {
+        val footer = if (nominatorId != null && username != null) {
+            EmbedFooter(username, "https://a.ppy.sh/$nominatorId")
+        } else {
+            EmbedFooter("Aiess")
+        }
+
         discordClient.send(
             """$CREATED_BEATMAP_ICON **Created**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
@@ -250,7 +256,7 @@ class AiessService(
             """.prependIndent(),
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            EmbedFooter(username, "https://a.ppy.sh/$nominatorId"),
+            footer,
             confidential = true
         )
     }
