@@ -11,6 +11,28 @@ data class AiessBeatmapEvent(
     val beatmapSetId: String,
 
     /**
+     * The artist of the song currently known by osu
+     */
+    val artist: String,
+
+    /**
+     * The title of the song currently known by osu
+     */
+    val title: String,
+
+    /**
+     * The current username of the mapper
+     */
+    @JsonProperty("creatorName")
+    val mapper: String,
+
+    /**
+     * The osu ID of the user
+     */
+    @JsonProperty("creatorId")
+    val mapperId: String,
+
+    /**
      * The current status of the beatmap.
      *
      * @see BeatmapStatus

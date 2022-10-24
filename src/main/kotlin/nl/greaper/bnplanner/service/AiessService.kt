@@ -77,11 +77,40 @@ class AiessService(
         beatmapDataSource.update(updatedBeatmap)
     }
 
+    fun createFallbackBeatmap(event: AiessBeatmapEvent): Beatmap {
+        val addDate = Instant.now()
+
+        val preparedGamemodes = event.modes.map { mode ->
+            BeatmapGamemode(
+                gamemode = mode,
+                nominators = listOf(
+                    BeatmapNominator("0", false),
+                    BeatmapNominator("0", false)
+                ),
+                isReady = false
+            )
+        }
+
+        return Beatmap(
+            osuId = event.beatmapSetId,
+            artist = event.artist,
+            title = event.title,
+            note = "",
+            mapper = event.mapper,
+            mapperId = event.mapperId,
+            status = event.status,
+            gamemodes = preparedGamemodes,
+            dateAdded = addDate,
+            dateUpdated = addDate,
+            dateRanked = null
+        )
+    }
+
     fun processAiessBeatmapEvent(event: AiessBeatmapEvent): AiessResponse {
         if (instantStatus.none { it == event.status }) {
             if (event.userId != null && event.username != null) {
                 val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
-                    ?: return AiessResponse(false, "Could not find beatmap on bnplanner")
+                    ?: createFallbackBeatmap(event)
 
                 if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Reset) {
                     val updatedGamemodes = databaseBeatmap.gamemodes.map { gamemode ->
@@ -333,14 +362,5 @@ class AiessService(
             EmbedFooter("Aiess"),
             confidential = true
         )
-    }
-}
-
-private fun Gamemode.toReadable(): String {
-    return when (this) {
-        Gamemode.osu -> "osu"
-        Gamemode.taiko -> "taiko"
-        Gamemode.fruits -> "catch"
-        Gamemode.mania -> "mania"
     }
 }
