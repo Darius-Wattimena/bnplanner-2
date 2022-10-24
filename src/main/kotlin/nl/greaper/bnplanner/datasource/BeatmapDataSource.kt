@@ -2,6 +2,7 @@ package nl.greaper.bnplanner.datasource
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
+import com.mongodb.client.model.ReplaceOptions
 import nl.greaper.bnplanner.model.PageLimit
 import nl.greaper.bnplanner.model.beatmap.Beatmap
 import org.bson.conversions.Bson
@@ -64,7 +65,8 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
     fun update(updatedBeatmap: Beatmap) {
         collection.replaceOneById(
             updatedBeatmap.osuId,
-            updatedBeatmap
+            updatedBeatmap,
+            ReplaceOptions().upsert(true)
         )
     }
 }
