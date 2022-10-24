@@ -15,6 +15,11 @@ jobs:
     steps:
       - checkout
 
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.gradle.kts" }}
+            - v1-dependencies-
+
       - run: gradle dependencies
 
       - save_cache:
@@ -22,7 +27,6 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle.kts" }}
 
-      # run tests and build war file!
       - run: gradle build
 
       - run:
