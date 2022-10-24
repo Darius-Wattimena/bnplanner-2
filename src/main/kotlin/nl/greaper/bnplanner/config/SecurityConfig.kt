@@ -37,7 +37,7 @@ class SecurityConfig(
             .and()
 
         http.authorizeRequests()
-            .antMatchers("/v2/auth", "/v2/auth/refresh").permitAll()
+            .antMatchers("/v2/auth", "/v2/auth/refresh", "/actuator/health").permitAll()
             .anyRequest().authenticated()
             .and()
 
