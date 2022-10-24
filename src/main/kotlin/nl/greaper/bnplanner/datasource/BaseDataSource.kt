@@ -14,7 +14,7 @@ abstract class BaseDataSource<T> {
 
     abstract fun initCollection(): MongoCollection<T>
 
-    protected fun list(): List<T> = collection.find().toList()
+    fun list(): List<T> = collection.find().toList()
     fun findFirst() = collection.findOne()
     fun findById(id: String): T? = collection.findOneById(id)
     fun deleteById(id: String) = collection.deleteOneById(id)
