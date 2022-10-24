@@ -2,6 +2,7 @@ package nl.greaper.bnplanner.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import nl.greaper.bnplanner.config.DiscordConfig
+import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
@@ -30,14 +31,16 @@ class DiscordWebhookClient(
         color: EmbedColor,
         beatmapId: String,
         editor: User?,
-        confidential: Boolean
+        confidential: Boolean,
+        gamemodes: List<Gamemode>
     ) {
         return send(
             description = description,
             color = color,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmapId}l.jpg"),
             footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
-            confidential = confidential
+            confidential = confidential,
+            gamemodes = gamemodes
         )
     }
 
@@ -46,7 +49,8 @@ class DiscordWebhookClient(
         color: EmbedColor,
         thumbnail: EmbedThumbnail,
         footer: EmbedFooter,
-        confidential: Boolean
+        confidential: Boolean,
+        gamemodes: List<Gamemode>
     ) {
         return send(
             EmbedMessage(
@@ -56,11 +60,16 @@ class DiscordWebhookClient(
                 thumbnail = thumbnail,
                 footer = footer
             ),
-            confidential
+            confidential,
+            gamemodes
         )
     }
 
-    private fun send(embedMessage: EmbedMessage, confidential: Boolean) {
+    private fun send(
+        embedMessage: EmbedMessage,
+        confidential: Boolean,
+        gamemodes: List<Gamemode>
+    ) {
         headers.contentType = MediaType.APPLICATION_JSON
         // Private discord server with all messages
         val webhookUrl = config.webhook
@@ -72,7 +81,7 @@ class DiscordWebhookClient(
             // Public catch mapping hub feed with only the most informative messages
             val moddingServerWebhookUrl = config.webhookPublic
 
-            if (moddingServerWebhookUrl.isNotBlank()) {
+            if (moddingServerWebhookUrl.isNotBlank() && gamemodes.contains(Gamemode.fruits)) {
                 rest.postForEntity<String>(moddingServerWebhookUrl, request)
             }
         }

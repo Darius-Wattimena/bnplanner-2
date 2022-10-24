@@ -307,7 +307,8 @@ class BeatmapService(
             color = EmbedColor.GREEN,
             beatmapId = beatmap.osuId,
             editor = editor,
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -321,7 +322,8 @@ class BeatmapService(
             color = EmbedColor.RED,
             beatmapId = beatmap.osuId,
             editor = editor,
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -337,7 +339,8 @@ class BeatmapService(
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
             editor = editor,
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -352,7 +355,8 @@ class BeatmapService(
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
             editor = editor,
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -391,7 +395,8 @@ class BeatmapService(
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             footer = EmbedFooter("Aiess"),
-            confidential = false
+            confidential = false,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -410,7 +415,8 @@ class BeatmapService(
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
             editor = editor,
-            confidential = false
+            confidential = false,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 

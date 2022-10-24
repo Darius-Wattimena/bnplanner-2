@@ -24,7 +24,8 @@ class DefaultExceptionHandler(
             color = EmbedColor.RED,
             thumbnail = EmbedThumbnail(""),
             footer = EmbedFooter(""),
-            confidential = true
+            confidential = true,
+            gamemodes = emptyList()
         )
 
         log.error(ex) { "Unhandled exception occurred" }

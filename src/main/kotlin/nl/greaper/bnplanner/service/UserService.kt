@@ -86,7 +86,8 @@ class UserService(
                 color = EmbedColor.ORANGE,
                 thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
                 footer = EmbedFooter("Nomination Planner"),
-                confidential = true
+                confidential = true,
+                gamemodes = listOf()
             )
 
             return restrictedUser
@@ -101,7 +102,8 @@ class UserService(
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
             footer = EmbedFooter("Nomination Planner"),
-            confidential = true
+            confidential = true,
+            gamemodes = listOf()
         )
 
         return newUser

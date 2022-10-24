@@ -254,7 +254,8 @@ class AiessService(
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             EmbedFooter("Aiess"),
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -273,7 +274,8 @@ class AiessService(
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             footer,
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -289,7 +291,8 @@ class AiessService(
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             EmbedFooter(username, "https://a.ppy.sh/$nominatorId"),
-            confidential = true
+            confidential = true,
+            gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
     }
 
@@ -396,7 +399,8 @@ class AiessService(
             color = color,
             thumbnail = EmbedThumbnail("https://a.ppy.sh/${user.osuId}"),
             EmbedFooter("Aiess"),
-            confidential = true
+            confidential = true,
+            gamemodes = emptyList()
         )
     }
 }

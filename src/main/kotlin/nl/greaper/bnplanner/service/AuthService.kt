@@ -77,7 +77,8 @@ class AuthService(
             color = if (exception != null) EmbedColor.RED else EmbedColor.GREEN,
             thumbnail = EmbedThumbnail(user?.osuId?.let { "https://a.ppy.sh/$it" } ?: ""),
             footer = EmbedFooter(user?.username ?: "", "https://a.ppy.sh/${user?.osuId}"),
-            confidential = true
+            confidential = true,
+            gamemodes = emptyList()
         )
     }
 }
