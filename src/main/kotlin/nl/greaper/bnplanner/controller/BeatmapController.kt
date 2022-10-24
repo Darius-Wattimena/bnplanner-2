@@ -50,7 +50,8 @@ class BeatmapController(
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
-        @RequestParam(required = false) nominators: Set<String>?
+        @RequestParam(required = false) nominators: Set<String>?,
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?
     ): Int {
         return service.countBeatmaps(
             artist = artist,
@@ -58,7 +59,8 @@ class BeatmapController(
             mapper = mapper,
             status = status ?: emptySet(),
             nominators = nominators ?: emptySet(),
-            page = page
+            page = page,
+            gamemodes = gamemodes ?: emptySet()
         )
     }
 
@@ -73,7 +75,8 @@ class BeatmapController(
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
-        @RequestParam(required = false) nominators: Set<String>?
+        @RequestParam(required = false) nominators: Set<String>?,
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
@@ -84,7 +87,8 @@ class BeatmapController(
             nominators = nominators ?: emptySet(),
             page = page,
             from = from,
-            to = to
+            to = to,
+            gamemodes = gamemodes ?: emptySet()
         )
     }
 
@@ -99,7 +103,8 @@ class BeatmapController(
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
-        @RequestParam(required = false) nominators: Set<String>?
+        @RequestParam(required = false) nominators: Set<String>?,
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
@@ -110,7 +115,8 @@ class BeatmapController(
             nominators = nominators ?: emptySet(),
             page = page,
             pageNumber = pageNumber,
-            pageLimit = pageLimit
+            pageLimit = pageLimit,
+            gamemodes = gamemodes ?: emptySet()
         )
     }
 

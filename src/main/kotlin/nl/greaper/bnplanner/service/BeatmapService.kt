@@ -33,6 +33,7 @@ import org.bson.conversions.Bson
 import org.litote.kmongo.and
 import org.litote.kmongo.bson
 import org.litote.kmongo.div
+import org.litote.kmongo.eq
 import org.litote.kmongo.`in`
 import org.litote.kmongo.or
 import org.litote.kmongo.regex
@@ -71,9 +72,10 @@ class BeatmapService(
         mapper: String?,
         status: Set<BeatmapStatus>,
         nominators: Set<String>,
-        page: BeatmapPage
+        page: BeatmapPage,
+        gamemodes: Set<Gamemode>
     ): Int {
-        return dataSource.count(setupFilter(artist, title, mapper, status, nominators, page))
+        return dataSource.count(setupFilter(artist, title, mapper, status, nominators, page, gamemodes))
     }
 
     fun findBeatmaps(
@@ -85,10 +87,11 @@ class BeatmapService(
         nominators: Set<String>,
         page: BeatmapPage,
         from: Int,
-        to: Int
+        to: Int,
+        gamemodes: Set<Gamemode>
     ): List<ExposedBeatmap> {
         return dataSource.findAll(
-            setupFilter(artist, title, mapper, status, nominators, page),
+            setupFilter(artist, title, mapper, status, nominators, page, gamemodes),
             from,
             to
         ).mapNotNull { it.toExposedBeatmap() }
@@ -103,10 +106,11 @@ class BeatmapService(
         nominators: Set<String>,
         page: BeatmapPage,
         pageNumber: Int,
-        pageLimit: PageLimit
+        pageLimit: PageLimit,
+        gamemodes: Set<Gamemode>
     ): List<ExposedBeatmap> {
         return dataSource.findAll(
-            setupFilter(artist, title, mapper, status, nominators, page),
+            setupFilter(artist, title, mapper, status, nominators, page, gamemodes),
             pageNumber,
             pageLimit
         ).mapNotNull { it.toExposedBeatmap() }
@@ -150,7 +154,8 @@ class BeatmapService(
         mapper: String?,
         status: Set<BeatmapStatus>,
         nominators: Set<String>,
-        page: BeatmapPage
+        page: BeatmapPage,
+        gamemodes: Set<Gamemode>
     ): Bson {
         val filters = mutableListOf<Bson>()
 
@@ -160,6 +165,10 @@ class BeatmapService(
 
         if (nominators.isNotEmpty()) {
             filters += Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId `in` nominators
+        }
+
+        if (gamemodes.isNotEmpty()) {
+            filters += Beatmap::gamemodes / BeatmapGamemode::gamemode `in` gamemodes
         }
 
         val parsedStatus = status.mapNotNull {
