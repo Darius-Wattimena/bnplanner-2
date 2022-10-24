@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- note that these properties do not work when running without spring! -->
+    <springProperty scope="context" name="directory" source="application.logging.directory"/>
+    <springProperty scope="context" name="maxfilesize" source="application.logging.maxfilesize" defaultValue="1GB"/>
+    <springProperty scope="context" name="maxdays" source="application.logging.maxdays" defaultValue="90"/>
+
+    <!-- always log to console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{ISO8601} %highlight(%-5level) [%cyan(%thread)] %yellow(%C{5}): %msg%n%throwable</pattern>
+        </encoder>
+    </appender>
+
+    <if condition='!property("directory").equals("")'>
+        <then>
+            <appender name="files" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+                <file>${directory}/catalina.out</file>
+
+                <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+                    <fileNamePattern>${directory}/rotated/catalina-%d{yyyyMMdd}-%i.log.gz</fileNamePattern>
+
+                    <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                        <maxFileSize>${maxfilesize}</maxFileSize>
+                    </timeBasedFileNamingAndTriggeringPolicy>
+
+                    <maxHistory>${maxdays}</maxHistory>
+
+                </rollingPolicy>
+
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>%d{ISO8601} %highlight(%-5level) [%t] %yellow(%C{5}): %msg%n%throwable</pattern>
+                </layout>
+
+            </appender>
+        </then>
+    </if>
+
+    <!-- LOG everything at INFO level -->
+    <root level="info">
+        <!-- always log to console -->
+        <appender-ref ref="console" />
+    </root>
+
+    <!-- Suppress output of logback when starting the application -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+</configuration>

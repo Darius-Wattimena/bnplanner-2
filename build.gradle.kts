@@ -22,20 +22,30 @@ repositories {
 dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
+    // Spring
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    implementation("org.litote.kmongo:kmongo:4.5.0")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("io.github.microutils:kotlin-logging:2.1.21")
-    implementation("io.jsonwebtoken:jjwt-api:0.11.2")
 
+    // Mongo
+    implementation("org.litote.kmongo:kmongo:4.5.0")
+
+    // Logging
+    implementation("io.github.microutils:kotlin-logging:2.1.21")
+    implementation("ch.qos.logback:logback-classic:1.2.11")
+    implementation("org.codehaus.janino:janino:3.1.6")
+
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:0.11.2")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 }
 
