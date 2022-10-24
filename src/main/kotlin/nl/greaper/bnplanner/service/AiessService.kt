@@ -92,6 +92,15 @@ class AiessService(
             )
         }
 
+        val mapper = userService.findUserById(event.mapperId)
+
+        // Mapper is unknown so we need to create one
+        if (mapper == null) {
+            val mapper = User(event.mapperId, event.mapper, event.modes.map { mode -> UserGamemode(mode, Role.Mapper) })
+
+            userDataSource.saveUser(mapper)
+        }
+
         return Beatmap(
             osuId = event.beatmapSetId,
             artist = event.artist,
