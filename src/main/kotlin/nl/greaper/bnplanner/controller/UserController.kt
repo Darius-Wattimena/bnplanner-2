@@ -30,7 +30,6 @@ class UserController(
         return userService.searchUser(username, gamemodes, roles)
     }
 
-
     @GetMapping("/fixUsers")
     @RolesAllowed(RolePermission.DEVELOPER)
     fun fixUsers(
