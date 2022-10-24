@@ -278,13 +278,15 @@ class BeatmapService(
         return updateBeatmapGamemode(beatmap, updatingGamemode, new)
     }
 
-    fun updateBeatmapGamemodes(beatmap: Beatmap, updatingGamemodes: List<BeatmapGamemode>, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
+    fun updateBeatmapGamemodes(beatmap: Beatmap, updatingGamemodes: List<BeatmapGamemode>, status: BeatmapStatus, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
         var updateBeatmap = beatmap
         updatingGamemodes.forEach {
             updateBeatmap = updateBeatmapGamemode(updateBeatmap, it, new)
         }
 
-        return updateBeatmap
+        return updateBeatmap.copy(
+            status = status
+        )
     }
 
     fun updateBeatmapGamemode(beatmap: Beatmap, updatingGamemode: BeatmapGamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {

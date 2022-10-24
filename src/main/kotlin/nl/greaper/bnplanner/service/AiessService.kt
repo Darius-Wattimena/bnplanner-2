@@ -45,7 +45,7 @@ class AiessService(
 
     private val instantStatus = listOf(BeatmapStatus.Ranked, BeatmapStatus.Graved, BeatmapStatus.Pending, BeatmapStatus.Unfinished)
 
-    fun processAiessBeatmapGamemodeEvent(databaseBeatmap: Beatmap, status: BeatmapStatus, userId: String, username: String, gamemodes: List<Gamemode>): Beatmap {
+    fun processAiessBeatmapGamemodeEvent(databaseBeatmap: Beatmap, status: BeatmapStatus, userId: String, username: String, gamemodes: List<Gamemode>) {
         val changingGamemodes = gamemodes.map { gamemode ->
             databaseBeatmap.gamemodes.find { it.gamemode == gamemode }
                 ?: BeatmapGamemode(
@@ -58,7 +58,7 @@ class AiessService(
                 )
         }
 
-        val updatedBeatmap = beatmapService.updateBeatmapGamemodes(databaseBeatmap, changingGamemodes) { updatingGamemode ->
+        val updatedBeatmap = beatmapService.updateBeatmapGamemodes(databaseBeatmap, changingGamemodes, status) { updatingGamemode ->
             val (currentFirstNominator, currentSecondNominator) = updatingGamemode.nominators.let { it[0] to it[1] }
 
             val newNominators = determineNominators(
@@ -74,10 +74,7 @@ class AiessService(
             updatingGamemode.copy(nominators = newNominators)
         }
 
-        return updatedBeatmap.copy(
-            status = status,
-            dateUpdated = Instant.now()
-        )
+        beatmapDataSource.update(updatedBeatmap)
     }
 
     fun processAiessBeatmapEvent(event: AiessBeatmapEvent): AiessResponse {
@@ -102,10 +99,8 @@ class AiessService(
                     return AiessResponse(true)
                 }
 
-                if (event.modes.isEmpty()) {
-                    event.modes.map {
-                        processAiessBeatmapGamemodeEvent(databaseBeatmap, event.status, event.userId, event.username, event.modes)
-                    }
+                if (event.modes.isNotEmpty()) {
+                    processAiessBeatmapGamemodeEvent(databaseBeatmap, event.status, event.userId, event.username, event.modes)
 
                     return AiessResponse(true)
                 }
