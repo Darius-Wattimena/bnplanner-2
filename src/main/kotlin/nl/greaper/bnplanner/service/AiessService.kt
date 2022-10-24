@@ -1,6 +1,7 @@
 package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
+import nl.greaper.bnplanner.CREATED_BEATMAP_ICON
 import nl.greaper.bnplanner.DISQUALIFY_STATUS_ICON
 import nl.greaper.bnplanner.GRAVED_STATUS_ICON
 import nl.greaper.bnplanner.NOMINATE_STATUS_ICON
@@ -77,7 +78,7 @@ class AiessService(
         beatmapDataSource.update(updatedBeatmap)
     }
 
-    fun createFallbackBeatmap(event: AiessBeatmapEvent): Beatmap {
+    fun createFallbackBeatmap(event: AiessBeatmapEvent, userId: String, username: String): Beatmap {
         val addDate = Instant.now()
 
         val preparedGamemodes = event.modes.map { mode ->
@@ -103,14 +104,14 @@ class AiessService(
             dateAdded = addDate,
             dateUpdated = addDate,
             dateRanked = null
-        )
+        ).also { logBeatmapAdded(it, event.status, userId, username) }
     }
 
     fun processAiessBeatmapEvent(event: AiessBeatmapEvent): AiessResponse {
         if (instantStatus.none { it == event.status }) {
             if (event.userId != null && event.username != null) {
                 val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
-                    ?: createFallbackBeatmap(event)
+                    ?: createFallbackBeatmap(event, event.userId, event.username)
 
                 if (event.status == BeatmapStatus.Disqualified || event.status == BeatmapStatus.Reset) {
                     val updatedGamemodes = databaseBeatmap.gamemodes.map { gamemode ->
@@ -237,6 +238,19 @@ class AiessService(
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             EmbedFooter("Aiess"),
+            confidential = true
+        )
+    }
+
+    private fun logBeatmapAdded(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String, username: String) {
+        discordClient.send(
+            """$CREATED_BEATMAP_ICON **Created**
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+            """.prependIndent(),
+            getMessageColor(newStatus),
+            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            EmbedFooter(username, "https://a.ppy.sh/$nominatorId"),
             confidential = true
         )
     }
