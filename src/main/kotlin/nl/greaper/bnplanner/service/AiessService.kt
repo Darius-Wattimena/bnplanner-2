@@ -132,6 +132,7 @@ class AiessService(
                     beatmapDataSource.update(
                         databaseBeatmap.copy(
                             gamemodes = updatedGamemodes,
+                            status = event.status,
                             dateUpdated = Instant.now()
                         )
                     )
