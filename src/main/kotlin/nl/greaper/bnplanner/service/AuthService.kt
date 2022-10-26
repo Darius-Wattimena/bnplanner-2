@@ -19,7 +19,7 @@ class AuthService(
 
     fun login(token: String): UserContext? {
         try {
-            val authToken = osuService.getToken(token)
+            val authToken = osuService.getToken(token) ?: return null
             val context = osuService.getUserContextByToken(authToken)
             return context.also { logLogin(it) }
         } catch (exception: Throwable) {

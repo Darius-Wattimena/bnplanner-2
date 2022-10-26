@@ -51,7 +51,8 @@ class BeatmapController(
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
-        @RequestParam(required = false) gamemodes: Set<Gamemode>?
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?,
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?
     ): Int {
         return service.countBeatmaps(
             artist = artist,
@@ -60,7 +61,8 @@ class BeatmapController(
             status = status ?: emptySet(),
             nominators = nominators ?: emptySet(),
             page = page,
-            gamemodes = gamemodes ?: emptySet()
+            gamemodes = gamemodes ?: emptySet(),
+            missingNominator = missingNominator ?: emptySet()
         )
     }
 
@@ -76,7 +78,8 @@ class BeatmapController(
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
-        @RequestParam(required = false) gamemodes: Set<Gamemode>?
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?,
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
@@ -88,7 +91,8 @@ class BeatmapController(
             page = page,
             from = from,
             to = to,
-            gamemodes = gamemodes ?: emptySet()
+            gamemodes = gamemodes ?: emptySet(),
+            missingNominator = missingNominator ?: emptySet()
         )
     }
 
@@ -104,7 +108,8 @@ class BeatmapController(
         @RequestParam(required = false) mapper: String?,
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
-        @RequestParam(required = false) gamemodes: Set<Gamemode>?
+        @RequestParam(required = false) gamemodes: Set<Gamemode>?,
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
@@ -116,7 +121,8 @@ class BeatmapController(
             page = page,
             pageNumber = pageNumber,
             pageLimit = pageLimit,
-            gamemodes = gamemodes ?: emptySet()
+            gamemodes = gamemodes ?: emptySet(),
+            missingNominator = missingNominator ?: emptySet()
         )
     }
 

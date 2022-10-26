@@ -14,13 +14,17 @@ class AuthController(private val authService: AuthService) {
 
     @PostMapping
     fun login(@RequestBody token: String): ResponseEntity<out UserContext> {
-        val result = authService.login(token)
+        return try {
+            val result = authService.login(token)
 
-        return if (result == null) {
-            // 400 no body
-            ResponseEntity.badRequest().body(null)
-        } else {
-            ResponseEntity.ok(result)
+            if (result == null) {
+                // 400 no body
+                ResponseEntity.ok(null)
+            } else {
+                ResponseEntity.ok(result)
+            }
+        } catch (err: Throwable) {
+            ResponseEntity.ok(null)
         }
     }
 
