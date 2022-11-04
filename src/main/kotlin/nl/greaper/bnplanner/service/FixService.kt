@@ -34,7 +34,7 @@ class FixService(
                 if (databaseUser != null) {
                     databaseUser.restricted == true
                 } else {
-                    false
+                    true
                 }
             }.toSet()
         )
