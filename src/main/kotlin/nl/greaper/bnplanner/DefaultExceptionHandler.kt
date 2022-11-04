@@ -20,7 +20,8 @@ class DefaultExceptionHandler(
     @ExceptionHandler
     fun exception(ex: Exception): ResponseEntity<String> {
         discordClient.send(
-            "**ERROR:** ${ex::class.simpleName} Unexpected exception occurred, see log for stacktrace.",
+            "**ERROR:**\n" +
+                "```\n${ex.stackTraceToString().take(1600)}\n```",
             color = EmbedColor.RED,
             thumbnail = EmbedThumbnail(""),
             footer = EmbedFooter(""),

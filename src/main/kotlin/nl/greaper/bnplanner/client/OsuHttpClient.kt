@@ -88,7 +88,7 @@ class OsuHttpClient(
         return request(uri, HttpMethod.GET, osuApiToken, includeBearer = includeBearer)
     }
 
-    fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean): BeatmapSet? {
+    fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean = true): BeatmapSet? {
         return try {
             val response = get("/beatmapsets/$osuId", osuApiToken, includeBearer)
             return response.body?.let { objectMapper.readValue<BeatmapSet>(it) }
