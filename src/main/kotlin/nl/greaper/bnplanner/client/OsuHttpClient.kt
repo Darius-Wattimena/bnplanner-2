@@ -42,7 +42,7 @@ class OsuHttpClient(
     /**
      * Get a token from the osu server
      */
-    fun getToken(code: String): ResponseEntity<AuthToken> {
+    fun getToken(code: String): ResponseEntity<AuthToken>? {
         val osuOAuth = OsuOAuth(
             client_id = config.clientId.toInt(),
             client_secret = config.clientSecret,
@@ -54,7 +54,11 @@ class OsuHttpClient(
         val body = objectMapper.writeValueAsString(osuOAuth)
         val request = HttpEntity(body, authHeaders)
 
-        return authRest.postForEntity(tokenUri, request)
+        runCatching {
+            return authRest.postForEntity(tokenUri, request)
+        }
+
+        return null
     }
 
     fun refreshToken(refreshToken: String): ResponseEntity<AuthToken>? {
@@ -84,7 +88,7 @@ class OsuHttpClient(
         return request(uri, HttpMethod.GET, osuApiToken, includeBearer = includeBearer)
     }
 
-    fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean): BeatmapSet? {
+    fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean = true): BeatmapSet? {
         return try {
             val response = get("/beatmapsets/$osuId", osuApiToken, includeBearer)
             return response.body?.let { objectMapper.readValue<BeatmapSet>(it) }

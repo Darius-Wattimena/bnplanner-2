@@ -13,17 +13,28 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(private val authService: AuthService) {
 
     @PostMapping
-    fun login(@RequestBody token: String): ResponseEntity<out UserContext> {
-        val result = authService.login(token)
+    fun login(@RequestBody token: String): ResponseEntity<UserContext?> {
+        runCatching {
+            val result = authService.login(token)
 
-        return if (result == null) {
-            // 400 no body
-            ResponseEntity.badRequest().body(null)
-        } else {
-            ResponseEntity.ok(result)
+            if (result != null) {
+                return ResponseEntity.ok(result)
+            }
         }
+
+        return ResponseEntity.badRequest().body(null)
     }
 
     @PostMapping("/refresh")
-    fun refreshLogin(@RequestBody refreshToken: String) = authService.refresh(refreshToken)
+    fun refreshLogin(@RequestBody refreshToken: String): ResponseEntity<UserContext?> {
+        runCatching {
+            val result = authService.refresh(refreshToken)
+
+            if (result != null) {
+                return ResponseEntity.ok(result)
+            }
+        }
+
+        return ResponseEntity.badRequest().body(null)
+    }
 }
