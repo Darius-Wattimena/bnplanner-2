@@ -26,15 +26,18 @@ class FixService(
             allUsers.add(beatmap.mapperId)
         }
 
-        syncUsers(osuToken, allUsers.filter { userId ->
-            val databaseUser = userService.findUserById(userId)
+        syncUsers(
+            osuToken,
+            allUsers.filter { userId ->
+                val databaseUser = userService.findUserById(userId)
 
-            if (databaseUser != null) {
-                databaseUser.restricted == true
-            } else {
-                false
-            }
-        }.toSet())
+                if (databaseUser != null) {
+                    databaseUser.restricted == true
+                } else {
+                    false
+                }
+            }.toSet()
+        )
     }
 
     fun syncUsers(osuToken: String, users: Set<String>) {
