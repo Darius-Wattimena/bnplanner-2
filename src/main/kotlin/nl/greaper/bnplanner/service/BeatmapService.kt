@@ -146,6 +146,8 @@ class BeatmapService(
         val databaseUser = userService.findUserById(osuBeatmap.user_id)
 
         if (databaseUser == null || databaseUser.restricted == true) {
+            // Sleep the thread if we need to find the user as well to avoid the call being blocked
+            Thread.sleep(1_000)
             userService.forceFindUserById(parsedToken, osuBeatmap.user_id)
         }
 

@@ -8,6 +8,9 @@ import nl.greaper.bnplanner.service.FixService
 import nl.greaper.bnplanner.service.UserService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -30,11 +33,20 @@ class UserController(
         return userService.searchUser(username, gamemodes, roles)
     }
 
-    @GetMapping("/fixUsers")
+    @GetMapping("/fix")
     @RolesAllowed(RolePermission.DEVELOPER)
-    fun fixUsers(
+    fun fixAllUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
     ) {
         fixService.syncUsers(osuApiToken)
+    }
+
+    @PostMapping("/fix")
+    @RolesAllowed(RolePermission.DEVELOPER)
+    fun fixUsers(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @RequestBody users: Set<String>
+    ) {
+        fixService.syncUsers(osuApiToken, users)
     }
 }
