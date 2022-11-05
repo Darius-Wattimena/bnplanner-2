@@ -40,7 +40,7 @@ class FixService(
         )
     }
 
-    fun syncUsers(osuToken: String, users: Set<String>) {
+    fun syncUsers(osuToken: String, users: Set<String>, force: Boolean = false) {
         val token = osuToken.removePrefix("Bearer ")
         val totalUsers = users.count()
 
@@ -48,7 +48,12 @@ class FixService(
 
         users.forEachIndexed { index, userId ->
             val currentUser = userService.findUserById(userId)
-            if (currentUser == null || currentUser.restricted == true) {
+            if (force || currentUser == null || currentUser.restricted == true) {
+                // Remove the users when we already know it
+                if (force && currentUser != null) {
+                    userService.deleteUser(currentUser)
+                }
+
                 userService.forceFindUserById(token, userId)
                 log.info { "[${index + 1}/$totalUsers] User $userId synced, sleeping." }
                 Thread.sleep(1_000L + Random.nextInt(0, 1000))

@@ -75,4 +75,9 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
         collection.save(user)
         addInMemoryUser(user)
     }
+
+    fun deleteUser(user: User) {
+        removeInMemoryUser(user)
+        deleteById(user.osuId)
+    }
 }

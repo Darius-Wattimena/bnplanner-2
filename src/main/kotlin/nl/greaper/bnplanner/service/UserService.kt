@@ -129,4 +129,8 @@ class UserService(
         val osuId = claims.subject
         return findUserById(osuId)
     }
+
+    fun deleteUser(user: User) {
+        dataSource.deleteUser(user)
+    }
 }

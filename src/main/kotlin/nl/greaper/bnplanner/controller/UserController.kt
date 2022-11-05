@@ -44,8 +44,9 @@ class UserController(
     @RolesAllowed(RolePermission.DEVELOPER)
     fun fixUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @RequestParam(required = false) force: Boolean?,
         @RequestBody users: Set<String>
     ) {
-        fixService.syncUsers(osuApiToken, users)
+        fixService.syncUsers(osuApiToken, users, force ?: false)
     }
 }
