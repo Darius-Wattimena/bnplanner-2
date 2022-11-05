@@ -23,7 +23,7 @@ class UserController(
     private val fixService: FixService
 ) {
     @GetMapping("/search")
-    @RolesAllowed(RolePermission.EDITOR)
+    @RolesAllowed(RolePermission.VIEWER)
     fun searchUser(
         @RequestParam(required = false) username: String?,
         @RequestParam(required = false) gamemodes: Set<Gamemode>?,
