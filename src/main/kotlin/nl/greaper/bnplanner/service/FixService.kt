@@ -2,7 +2,6 @@ package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
-import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import org.springframework.stereotype.Service
@@ -18,17 +17,17 @@ class FixService(
 
     fun syncBeatmaps(osuToken: String, status: BeatmapStatus) {
         beatmapService.findBeatmaps(
-            osuToken,
-            null,
-            null,
-            null,
-            setOf(status),
-            emptySet(),
-            BeatmapPage.PENDING,
-            0,
-            9999,
-            emptySet(),
-            emptySet()
+            osuApiToken = osuToken,
+            artist = null,
+            title = null,
+            mapper = null,
+            status = setOf(status),
+            nominators = emptySet(),
+            page = BeatmapPage.PENDING,
+            from = 0,
+            to = 9999,
+            gamemodes = emptySet(),
+            missingNominator = emptySet()
         )
     }
 

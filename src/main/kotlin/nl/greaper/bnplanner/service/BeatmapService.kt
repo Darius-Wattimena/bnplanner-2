@@ -184,7 +184,7 @@ class BeatmapService(
             return
         }
 
-        val newStatus = when(osuBeatmap.ranked) {
+        val newStatus = when (osuBeatmap.ranked) {
             1, 2 -> BeatmapStatus.Ranked
             3 -> BeatmapStatus.Qualified
             else -> null
