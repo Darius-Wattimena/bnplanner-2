@@ -170,6 +170,44 @@ class BeatmapService(
         return newBeatmap.toExposedBeatmap()
     }
 
+    fun syncBeatmap(osuApiToken: String, beatmap: Beatmap) {
+        // Don't sync a beatmap if it is already marked as ranked
+        if (beatmap.status == BeatmapStatus.Ranked) {
+            return
+        }
+
+        val parsedToken = osuApiToken.removePrefix("Bearer ")
+        val osuBeatmap = osuHttpClient.findBeatmapWithId(parsedToken, beatmap.osuId)
+
+        if (osuBeatmap == null) {
+            log.warn { "Could not find beatmap when requesting osu api (osuId: ${beatmap.osuId})" }
+            return
+        }
+
+        val newStatus = when(osuBeatmap.ranked) {
+            1, 2 -> BeatmapStatus.Ranked
+            3 -> BeatmapStatus.Qualified
+            else -> null
+        }
+
+        val dateRanked = if (newStatus == BeatmapStatus.Ranked) {
+            osuBeatmap.ranked_date ?: Instant.now()
+        } else {
+            null
+        }
+
+        val updatedBeatmap = beatmap.copy(
+            artist = osuBeatmap.artist,
+            title = osuBeatmap.title,
+            mapper = osuBeatmap.creator,
+            status = newStatus ?: beatmap.status,
+            dateUpdated = osuBeatmap.last_updated,
+            dateRanked = dateRanked
+        )
+
+        dataSource.update(updatedBeatmap)
+    }
+
     private fun setupFilter(
         artist: String?,
         title: String?,

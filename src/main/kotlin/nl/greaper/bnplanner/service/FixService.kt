@@ -2,15 +2,53 @@ package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
+import nl.greaper.bnplanner.model.Gamemode
+import nl.greaper.bnplanner.model.beatmap.BeatmapPage
+import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import org.springframework.stereotype.Service
 import kotlin.random.Random
 
 @Service
 class FixService(
     private val beatmapDataSource: BeatmapDataSource,
-    private val userService: UserService
+    private val userService: UserService,
+    private val beatmapService: BeatmapService
 ) {
     val log = KotlinLogging.logger { }
+
+    fun syncBeatmaps(osuToken: String, status: BeatmapStatus) {
+        beatmapService.findBeatmaps(
+            osuToken,
+            null,
+            null,
+            null,
+            setOf(status),
+            emptySet(),
+            BeatmapPage.PENDING,
+            0,
+            9999,
+            emptySet(),
+            emptySet()
+        )
+    }
+
+    fun syncBeatmaps(osuToken: String, beatmaps: Set<String>) {
+        val totalBeatmaps = beatmaps.count()
+
+        log.info { "Checking $totalBeatmaps beatmaps." }
+
+        beatmaps.forEachIndexed { index, beatmapId ->
+            val beatmap = beatmapService.findBeatmap(beatmapId)
+
+            // Remove the users when we already know it
+            if (beatmap != null) {
+                beatmapService.syncBeatmap(osuToken, beatmap)
+
+                log.info { "[${index + 1}/$totalBeatmaps] Beatmap ${beatmap.osuId} synced, sleeping." }
+                Thread.sleep(1_000L + Random.nextInt(0, 1000))
+            }
+        }
+    }
 
     fun syncUsers(osuToken: String) {
         val allBeatmaps = beatmapDataSource.list()
