@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.service
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
 import nl.greaper.bnplanner.CREATED_BEATMAP_ICON
 import nl.greaper.bnplanner.DISQUALIFY_STATUS_ICON
@@ -155,7 +156,10 @@ class AiessService(
                 return AiessResponse(false, "No modes are provided")
             }
 
-            return AiessResponse(false, "A userId or userName needs to be provided when the beatmap isn't ranked")
+            // Ignore any beatmap updates if no user was provided.
+            // This means this was incorrectly scraped by Aiess, and we can't do anything about this.
+            logIncompleteAiessBeatmapEvent(event)
+            return AiessResponse(true)
         } else {
             val databaseBeatmap = beatmapService.findBeatmap(event.beatmapSetId)
                 ?: createFallbackBeatmap(event, null, null)
@@ -242,6 +246,21 @@ class AiessService(
         }
 
         return newNominators.toList()
+    }
+
+    private fun logIncompleteAiessBeatmapEvent(event: AiessBeatmapEvent) {
+        discordClient.send(
+            """**ERROR: Incomplete AiessBeatmapEvent**
+                ```
+                ${jacksonObjectMapper().writeValueAsString(event)}
+                ```
+            """.prependIndent(),
+            EmbedColor.RED,
+            EmbedThumbnail("https://b.ppy.sh/thumb/${event.beatmapSetId}l.jpg"),
+            EmbedFooter("Aiess"),
+            confidential = true,
+            gamemodes = listOf()
+        )
     }
 
     private fun logInstantStatus(beatmap: Beatmap, newStatus: BeatmapStatus) {
