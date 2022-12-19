@@ -397,7 +397,7 @@ class BeatmapService(
         discordClient.sendBeatmapUpdate(
             """$CREATED_BEATMAP_ICON **Created**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.GREEN,
             beatmapId = beatmap.osuId,
@@ -412,7 +412,7 @@ class BeatmapService(
         discordClient.sendBeatmapUpdate(
             """$DELETED_BEATMAP_ICON **Deleted**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.RED,
             beatmapId = beatmap.osuId,
@@ -429,7 +429,7 @@ class BeatmapService(
             """$CHANGE_BEATMAP_NOTE_ICON **Updated note**
                 ```${beatmap.note.replace("""\n  +""".toRegex(), "\n")}```
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
@@ -445,7 +445,7 @@ class BeatmapService(
         discordClient.sendBeatmapUpdate(
             """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
@@ -490,7 +490,7 @@ class BeatmapService(
         discordClient.send(
             """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [${gamemode.toReadableName()}]
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -532,7 +532,7 @@ class BeatmapService(
         discordClient.sendBeatmapUpdate(
             """${nominatorChangesText.joinToString { "\n" }}
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [${beatmap.gamemodes.map { it.gamemode.toReadableName()}}]
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${beatmap.gamemodes.map { it.gamemode.toReadableName()}}]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
@@ -552,7 +552,7 @@ class BeatmapService(
         discordClient.sendBeatmapUpdate(
             """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [${gamemode.toReadableName()}]
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,

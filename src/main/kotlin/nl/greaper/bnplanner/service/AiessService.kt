@@ -289,7 +289,7 @@ class AiessService(
         discordClient.send(
             """$CREATED_BEATMAP_ICON **Created**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}})
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -306,7 +306,7 @@ class AiessService(
         discordClient.send(
             """**$messageIcon Updated status to $newStatus**
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}}) [$gamemodeText]
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$gamemodeText]
             """.prependIndent(),
             getMessageColor(newStatus),
             EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
