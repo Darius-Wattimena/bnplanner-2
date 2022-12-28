@@ -41,7 +41,7 @@ class UserController(
     }
 
     @PostMapping("/fix")
-    @RolesAllowed(RolePermission.DEVELOPER)
+    @RolesAllowed(RolePermission.ADMIN)
     fun fixUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam(required = false) force: Boolean?,
