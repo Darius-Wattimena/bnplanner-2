@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.auth
 
-import nl.greaper.bnplanner.config.AiessConfig
+import nl.greaper.bnplanner.config.AiessProperties
 import nl.greaper.bnplanner.service.UserService
 import nl.greaper.bnplanner.util.getAiessRole
 import nl.greaper.bnplanner.util.getHighestRoleForUser
@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse
 
 @Component
 class JwtTokenFilter(
-    private val aiessConfig: AiessConfig,
+    private val aiess: AiessProperties,
     private val userService: UserService
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
@@ -37,7 +37,7 @@ class JwtTokenFilter(
             header.startsWith("Aiess ") -> {
                 val token = header.split(" ".toRegex()).toTypedArray().getOrNull(1)?.trim()
 
-                if (aiessConfig.token == token) {
+                if (aiess.token == token) {
                     val permission = getAiessRole()
 
                     val authentication = UsernamePasswordAuthenticationToken(

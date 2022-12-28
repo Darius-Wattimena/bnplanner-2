@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
 @ConfigurationProperties("mongodb")
-data class MongoConfig(
+data class MongoProperties(
     val db: String,
     val username: String,
     val password: String,
@@ -16,7 +16,7 @@ data class MongoConfig(
 
 @ConstructorBinding
 @ConfigurationProperties("osu")
-data class OsuConfig(
+data class OsuProperties(
     val clientId: String,
     val clientSecret: String,
     val redirectUri: String
@@ -24,7 +24,7 @@ data class OsuConfig(
 
 @ConstructorBinding
 @ConfigurationProperties("cors")
-data class CorsConfig(
+data class CorsProperties(
     val uris: String,
     val methods: String,
     val headers: String
@@ -32,13 +32,13 @@ data class CorsConfig(
 
 @ConstructorBinding
 @ConfigurationProperties("discord")
-data class DiscordConfig(
+data class DiscordProperties(
     val webhook: String,
     val webhookPublic: String
 )
 
 @ConstructorBinding
 @ConfigurationProperties("aiess")
-data class AiessConfig(
+data class AiessProperties(
     val token: String
 )

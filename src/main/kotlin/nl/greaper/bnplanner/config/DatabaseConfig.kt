@@ -16,7 +16,7 @@ class DatabaseConfig {
     val encoding = "UTF-8"
 
     @Bean
-    fun mongoClient(config: MongoConfig): MongoClient {
+    fun mongoClient(config: MongoProperties): MongoClient {
         val uri = if (config.username.isNotBlank() && config.password.isNotBlank()) {
             val encodedUsername = URLEncoder.encode(config.username, encoding)
             val encodedPassword = URLEncoder.encode(config.password, encoding)
@@ -34,7 +34,7 @@ class DatabaseConfig {
     }
 
     @Bean
-    fun mongoDatabase(config: MongoConfig, client: MongoClient): MongoDatabase {
+    fun mongoDatabase(config: MongoProperties, client: MongoClient): MongoDatabase {
         return client.getDatabase(config.db)
     }
 }

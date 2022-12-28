@@ -1,7 +1,7 @@
 package nl.greaper.bnplanner.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import nl.greaper.bnplanner.config.DiscordConfig
+import nl.greaper.bnplanner.config.DiscordProperties
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.discord.EmbedColor
@@ -19,7 +19,7 @@ import org.springframework.web.client.postForEntity
 
 @Component
 class DiscordWebhookClient(
-    private val config: DiscordConfig,
+    private val config: DiscordProperties,
     private val objectMapper: ObjectMapper
 ) {
 

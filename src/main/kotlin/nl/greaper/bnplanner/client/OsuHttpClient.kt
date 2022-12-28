@@ -3,7 +3,7 @@ package nl.greaper.bnplanner.client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
-import nl.greaper.bnplanner.config.OsuConfig
+import nl.greaper.bnplanner.config.OsuProperties
 import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
 import nl.greaper.bnplanner.model.osu.Me
@@ -23,7 +23,7 @@ import org.springframework.web.client.postForEntity
 
 @Component
 class OsuHttpClient(
-    val config: OsuConfig,
+    val config: OsuProperties,
     val objectMapper: ObjectMapper
 ) {
     val log = KotlinLogging.logger { }
