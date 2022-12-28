@@ -7,6 +7,7 @@ import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.model.User
 import org.litote.kmongo.getCollection
 import org.litote.kmongo.save
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
@@ -25,7 +26,7 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
 
     private fun removeInMemoryUser(user: User) {
         users.remove(user)
-        usersByOsuId.remove(user.username)
+        usersByOsuId.remove(user.osuId)
 
         for (userGamemode in user.gamemodes) {
             val newUsers = usersByGamemode[userGamemode.gamemode]?.toMutableList() ?: continue
