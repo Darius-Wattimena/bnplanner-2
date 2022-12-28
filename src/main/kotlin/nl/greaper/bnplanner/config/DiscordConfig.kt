@@ -100,7 +100,7 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
 
             // Listener doesn't exist yet, create a new one
             val success = if (existingListener == null) {
-                dataSource.create(newListener).insertedId != null
+                dataSource.create(newListener).wasAcknowledged()
             } else {
                 // Listener is already known for this channel, update it with the new configuration
                 dataSource.replace(existingListener, newListener).modifiedCount == 1L
