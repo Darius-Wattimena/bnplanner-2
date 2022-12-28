@@ -45,7 +45,6 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
                     "register" -> handleListenerRegister(event)
                     "status" -> handleStatus(event)
                 }
-
             }
         }
 
