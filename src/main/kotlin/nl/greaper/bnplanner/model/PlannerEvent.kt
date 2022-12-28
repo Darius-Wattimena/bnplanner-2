@@ -1,0 +1,14 @@
+package nl.greaper.bnplanner.model
+
+enum class PlannerEvent {
+    BEATMAP_CREATE,
+    BEATMAP_ADD_NOMINATOR,
+    BEATMAP_REMOVE_NOMINATOR,
+    BEATMAP_UPDATE_OSU_STATUS,
+    BEATMAP_UPDATE_PLANNER_STATUS,
+    BEATMAP_DELETE,
+
+    USER_CREATE,
+    USER_LOGIN,
+    USER_UPDATE_GROUP
+}

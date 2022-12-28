@@ -7,7 +7,6 @@ import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.model.User
 import org.litote.kmongo.getCollection
 import org.litote.kmongo.save
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component

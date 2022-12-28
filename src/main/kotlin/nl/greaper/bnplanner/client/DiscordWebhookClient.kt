@@ -1,30 +1,25 @@
 package nl.greaper.bnplanner.client
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import nl.greaper.bnplanner.config.DiscordProperties
+import mu.KotlinLogging
+import net.dv8tion.jda.api.EmbedBuilder
+import net.dv8tion.jda.api.JDA
+import nl.greaper.bnplanner.datasource.DiscordEventListenerDataSource
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.User
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedMessage
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
-import nl.greaper.bnplanner.model.discord.Message
 import nl.greaper.bnplanner.model.discord.getValue
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.postForEntity
 
 @Component
 class DiscordWebhookClient(
-    private val config: DiscordProperties,
-    private val objectMapper: ObjectMapper
+    private val dataSource: DiscordEventListenerDataSource,
+    private val jda: JDA
 ) {
 
-    private val rest = RestTemplate()
-    private val headers = HttpHeaders()
+    val log = KotlinLogging.logger { }
 
     fun sendBeatmapUpdate(
         description: String,
@@ -69,24 +64,34 @@ class DiscordWebhookClient(
         confidential: Boolean,
         gamemodes: List<Gamemode>
     ) {
-        headers.contentType = MediaType.APPLICATION_JSON
-        // Private discord server with all messages
-        val webhookUrl = config.webhook
+        val messageEmbed = EmbedBuilder()
+            .setDescription(embedMessage.description)
+            .setColor(embedMessage.color)
+            .setFooter(embedMessage.footer.text, embedMessage.footer.icon_url)
+            .setThumbnail(embedMessage.thumbnail.url)
+            .build()
 
-        val body = objectMapper.writeValueAsString(Message(listOf(embedMessage)))
-        val request = HttpEntity(body, headers)
+        val listeners = dataSource.getListeners()
 
-        if (!confidential) {
-            // Public catch mapping hub feed with only the most informative messages
-            val moddingServerWebhookUrl = config.webhookPublic
+        for (listener in listeners) {
+            val isCorrectGamemode = listener.gamemode != null && gamemodes.contains(listener.gamemode)
+            val isPublicMessage = ((gamemodes.isEmpty() || (listener.gamemode == null || isCorrectGamemode)) && !confidential)
 
-            if (moddingServerWebhookUrl.isNotBlank() && gamemodes.contains(Gamemode.fruits)) {
-                rest.postForEntity<String>(moddingServerWebhookUrl, request)
+            // Only send a message when relevant for the listener
+            if ((confidential && listener.confidential) || (!listener.confidential && isPublicMessage)) {
+                try {
+                    val textChannel = jda.getTextChannelById(listener.channelId)
+
+                    if (textChannel != null) {
+                        textChannel.sendMessageEmbeds(messageEmbed).queue()
+                    } else {
+                        // Discord channel has probably been deleted, removing from listeners
+                        dataSource.remove(listener)
+                    }
+                } catch (exception: Throwable) {
+                    log.error { "Could not deliver discord message to server" }
+                }
             }
-        }
-
-        if (webhookUrl.isNotBlank()) {
-            rest.postForEntity<String>(webhookUrl, request)
         }
     }
 }
