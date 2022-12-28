@@ -85,11 +85,11 @@ class DiscordWebhookClient(
                     if (textChannel != null) {
                         textChannel.sendMessageEmbeds(messageEmbed).queue()
                     } else {
-                        // Discord channel has probably been deleted, removing from listeners
+                        // Discord channel has probably been deleted or bot has been removed, removing from listeners
                         dataSource.remove(listener)
                     }
-                } catch (exception: Throwable) {
-                    log.error { "Could not deliver discord message to server" }
+                } catch (ex: Throwable) {
+                    log.error(ex) { "Could not deliver discord message to server" }
                 }
             }
         }

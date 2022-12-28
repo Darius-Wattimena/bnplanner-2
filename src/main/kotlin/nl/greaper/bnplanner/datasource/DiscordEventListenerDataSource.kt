@@ -3,6 +3,7 @@ package nl.greaper.bnplanner.datasource
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.result.DeleteResult
+import com.mongodb.client.result.InsertOneResult
 import com.mongodb.client.result.UpdateResult
 import nl.greaper.bnplanner.model.discord.DiscordEventListener
 import org.litote.kmongo.and
@@ -35,9 +36,9 @@ class DiscordEventListenerDataSource(private val database: MongoDatabase) : Base
         }
     }
 
-    fun create(newListener: DiscordEventListener) {
-        insertOne(newListener)
+    fun create(newListener: DiscordEventListener): InsertOneResult {
         addInMemoryListener(newListener)
+        return insertOne(newListener)
     }
 
     fun replace(oldListener: DiscordEventListener, newListener: DiscordEventListener): UpdateResult {
