@@ -15,7 +15,25 @@ class FixService(
 ) {
     val log = KotlinLogging.logger { }
 
-    fun syncBeatmaps(osuToken: String, status: BeatmapStatus) {
+    fun syncAllBeatmaps(osuToken: String, page: BeatmapPage) {
+        val beatmaps = beatmapService.findBeatmaps(
+            osuApiToken = osuToken,
+            artist = null,
+            title = null,
+            mapper = null,
+            status = emptySet(),
+            nominators = emptySet(),
+            page = page,
+            from = 0,
+            to = 9999,
+            gamemodes = emptySet(),
+            missingNominator = emptySet()
+        ).map { it.osuId }.toSet()
+
+        syncBeatmaps(osuToken, beatmaps)
+    }
+
+    fun syncBeatmaps(osuToken: String, page: BeatmapPage, status: BeatmapStatus) {
         val beatmaps = beatmapService.findBeatmaps(
             osuApiToken = osuToken,
             artist = null,
@@ -23,7 +41,7 @@ class FixService(
             mapper = null,
             status = setOf(status),
             nominators = emptySet(),
-            page = BeatmapPage.PENDING,
+            page = page,
             from = 0,
             to = 9999,
             gamemodes = emptySet(),
@@ -51,7 +69,7 @@ class FixService(
         }
     }
 
-    fun syncUsers(osuToken: String) {
+    fun syncAllUsers(osuToken: String) {
         val allBeatmaps = beatmapDataSource.list()
         val allUsers = mutableSetOf<String>()
 
@@ -65,17 +83,20 @@ class FixService(
             allUsers.add(beatmap.mapperId)
         }
 
-        syncUsers(
-            osuToken,
-            allUsers.filter { userId ->
-                val databaseUser = userService.findUserById(userId)
+        val unrestrictedUsers = allUsers.filter { userId ->
+            val databaseUser = userService.findUserById(userId)
 
-                if (databaseUser != null) {
-                    databaseUser.restricted == true
-                } else {
-                    true
-                }
-            }.toSet()
+            if (databaseUser != null) {
+                databaseUser.restricted != true
+            } else {
+                true
+            }
+        }.toSet()
+
+        syncUsers(
+            osuToken = osuToken,
+            users = unrestrictedUsers,
+            force = true
         )
     }
 

@@ -7,10 +7,8 @@ import nl.greaper.bnplanner.model.beatmap.BeatmapGamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import nl.greaper.bnplanner.model.beatmap.ExposedBeatmap
-import nl.greaper.bnplanner.model.beatmap.LegacyBeatmap
 import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.service.BeatmapService
-import nl.greaper.bnplanner.service.FixService
 import org.springframework.http.HttpHeaders
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,15 +25,8 @@ import javax.annotation.security.RolesAllowed
 @RestController
 @RequestMapping("/v2/beatmap")
 class BeatmapController(
-    val service: BeatmapService,
-    val fixService: FixService
+    val service: BeatmapService
 ) {
-    @PostMapping("/import")
-    @RolesAllowed(RolePermission.DEVELOPER)
-    fun importBeatmaps(@RequestBody body: List<LegacyBeatmap>) {
-        service.importLegacyBeatmaps(body)
-    }
-
     @GetMapping("/{id}")
     @RolesAllowed(RolePermission.VIEWER)
     fun findBeatmap(
@@ -187,14 +178,5 @@ class BeatmapController(
         @PathVariable("id") id: String
     ) {
         service.deleteBeatmap(osuApiToken, id)
-    }
-
-    @GetMapping("/fix")
-    @RolesAllowed(RolePermission.DEVELOPER)
-    fun fixBeatmapsByStatus(
-        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestParam status: BeatmapStatus
-    ) {
-        fixService.syncBeatmaps(osuApiToken, status)
     }
 }

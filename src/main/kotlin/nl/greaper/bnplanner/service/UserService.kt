@@ -76,13 +76,15 @@ class UserService(
     /**
      * Find an osu user via the API and save them in the database for later use
      */
-    fun forceFindUserById(osuApiToken: String, osuId: String, log: Boolean = true): User? {
+    fun forceFindUserById(osuApiToken: String, osuId: String, logEventToDiscord: Boolean = true): User? {
+        val editor = getEditor(osuApiToken)
         val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
 
         if (osuUser == null) {
             // Should only end up here if the user is restricted or the provided id is invalid
             val restrictedUser = User(osuId, "RESTRICTED", emptyList(), restricted = true)
             dataSource.saveUser(restrictedUser)
+            log.info { "[CREATE] ${editor?.username} added restricted user (osuId = $osuId)" }
 
             discordClient.send(
                 description = "Could not find user with id $osuId, created restricted user",
@@ -100,7 +102,8 @@ class UserService(
 
         dataSource.saveUser(newUser)
 
-        if (log) {
+        if (logEventToDiscord) {
+            log.info { "[CREATE] ${editor?.username} added user ${newUser.username} (osuId = $osuId)" }
             discordClient.send(
                 description = "Created user $osuId, with username: ${newUser.username}",
                 color = EmbedColor.BLUE,
@@ -128,11 +131,15 @@ class UserService(
         return dataSource.findUser(osuId)
     }
 
-    fun getEditor(osuApiToken: String): User? {
+    fun getEditorId(osuApiToken: String): String? {
         val claims = parseJwtToken(osuApiToken) ?: return null
 
-        val osuId = claims.subject
-        return findUserById(osuId)
+        return claims.subject
+    }
+
+    fun getEditor(osuApiToken: String): User? {
+        val editorId = getEditorId(osuApiToken) ?: return null
+        return findUserById(editorId)
     }
 
     fun deleteUser(user: User) {

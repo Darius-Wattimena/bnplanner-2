@@ -283,6 +283,7 @@ class BeatmapService(
         return and(filters)
     }
 
+    @Deprecated("Endpoint has been removed, to be removed")
     fun importLegacyBeatmaps(legacyBeatmaps: List<LegacyBeatmap>) {
         val convertedBeatmaps = legacyBeatmaps.mapNotNull { convertLegacyBeatmapToBeatmap(it) }
         dataSource.insertMany(convertedBeatmaps)
@@ -393,10 +394,11 @@ class BeatmapService(
 
     fun logBeatmapAdded(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
+        log.info { "[CREATE] ${editor?.username} added (beatmap = ${beatmap.osuId})" }
 
         discordClient.sendBeatmapUpdate(
-            """$CREATED_BEATMAP_ICON **Created**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+            """$CREATED_BEATMAP_ICON **Created
+                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.GREEN,
@@ -409,9 +411,11 @@ class BeatmapService(
 
     fun logBeatmapDelete(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
+        log.info { "[DELETE] ${editor?.username} deleted (beatmap = ${beatmap.osuId})" }
+
         discordClient.sendBeatmapUpdate(
-            """$DELETED_BEATMAP_ICON **Deleted**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+            """$DELETED_BEATMAP_ICON **Deleted
+                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.RED,
@@ -424,6 +428,7 @@ class BeatmapService(
 
     fun logBeatmapNoteChange(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
+        log.info { "[UPDATE] ${editor?.username} changed note (beatmap = ${beatmap.osuId})" }
 
         discordClient.sendBeatmapUpdate(
             """$CHANGE_BEATMAP_NOTE_ICON **Updated note**
@@ -441,10 +446,11 @@ class BeatmapService(
 
     fun logBeatmapStatusChange(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
+        log.info { "[UPDATE] ${editor?.username} changed status to ${beatmap.status.name} (beatmap = ${beatmap.osuId})" }
 
         discordClient.sendBeatmapUpdate(
-            """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+            """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}
+                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.ORANGE,
@@ -507,12 +513,19 @@ class BeatmapService(
             .takeIf { it.isNotBlank() }
     }
 
-    fun logGamemodeUpdatedNominators(beatmapGamemode: BeatmapGamemode, oldBeatmapGamemode: BeatmapGamemode?): String? {
+    fun logGamemodeUpdatedNominators(editor: User?, beatmapId: String, beatmapGamemode: BeatmapGamemode, oldBeatmapGamemode: BeatmapGamemode?): String? {
         val (currentFirstNominator, currentSecondNominator) = oldBeatmapGamemode?.nominators.let { it?.get(0) to it?.get(1) }
         val (newFirstNominator, newSecondNominator) = beatmapGamemode.nominators.let { it[0] to it[1] }
 
         val firstNominatorTextChanged = getChangedNominatorText(newFirstNominator, currentFirstNominator)
         val secondNominatorTextChanged = getChangedNominatorText(newSecondNominator, currentSecondNominator)
+
+        if (firstNominatorTextChanged != null) {
+            log.info { "[UPDATE] ${editor?.username} changed 1st nominator on (beatmap = $beatmapId, gamemode = ${beatmapGamemode.gamemode} from ${currentFirstNominator?.nominatorId} to ${newFirstNominator.nominatorId}" }
+        }
+        if (secondNominatorTextChanged != null) {
+            log.info { "[UPDATE] ${editor?.username} changed 2nd nominator on (beatmap = $beatmapId, gamemode = ${beatmapGamemode.gamemode} from ${currentSecondNominator?.nominatorId} to ${newSecondNominator.nominatorId}" }
+        }
 
         return if (firstNominatorTextChanged != null && secondNominatorTextChanged != null) {
             firstNominatorTextChanged + "\n" + secondNominatorTextChanged
@@ -526,7 +539,7 @@ class BeatmapService(
         val nominatorChangesText = beatmap.gamemodes.mapNotNull { beatmapGamemode ->
             val oldBeatmapGamemode = oldBeatmap.gamemodes.find { it.gamemode == beatmapGamemode.gamemode }
 
-            logGamemodeUpdatedNominators(beatmapGamemode, oldBeatmapGamemode)
+            logGamemodeUpdatedNominators(editor, beatmap.osuId, beatmapGamemode, oldBeatmapGamemode)
         }
 
         discordClient.sendBeatmapUpdate(
@@ -548,6 +561,7 @@ class BeatmapService(
         val newNominator = userService.findUserById(newNominatorId)
 
         val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
+        log.info { "[UPDATE] ${editor?.username} changed nominators from $oldNominatorId to $newNominatorId (beatmap = ${beatmap.osuId})" }
 
         discordClient.sendBeatmapUpdate(
             """$nominatorChangesText

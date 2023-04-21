@@ -83,7 +83,7 @@ class OsuService(
         val claims = parseJwtToken(token.access_token) ?: return null
 
         val osuId = claims.subject
-        val user = userService.forceFindUserById(token.access_token, osuId, log = false)
+        val user = userService.forceFindUserById(token.access_token, osuId, logEventToDiscord = false)
 
         return UserContext(user, token.access_token, token.refresh_token, tokenExpires.toEpochMilli(), getHighestRoleForUser(user))
     }

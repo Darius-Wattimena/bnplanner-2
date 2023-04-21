@@ -18,7 +18,6 @@ class DiscordWebhookClient(
     private val dataSource: DiscordEventListenerDataSource,
     private val jda: JDA
 ) {
-
     val log = KotlinLogging.logger { }
 
     fun sendBeatmapUpdate(

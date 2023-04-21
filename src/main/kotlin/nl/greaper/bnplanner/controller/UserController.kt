@@ -32,14 +32,7 @@ class UserController(
         return userService.searchUser(username, gamemodes, roles)
     }
 
-    @GetMapping("/fix")
-    @RolesAllowed(RolePermission.DEVELOPER)
-    fun fixAllUsers(
-        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-    ) {
-        fixService.syncUsers(osuApiToken)
-    }
-
+    @Deprecated("Remove once not used anymore by frontend")
     @PostMapping("/fix")
     @RolesAllowed(RolePermission.ADMIN)
     fun fixUsers(
