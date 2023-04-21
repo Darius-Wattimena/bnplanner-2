@@ -73,7 +73,10 @@ class UserService(
         return tempUser
     }
 
-    fun forceFindUserById(osuApiToken: String, osuId: String): User? {
+    /**
+     * Find an osu user via the API and save them in the database for later use
+     */
+    fun forceFindUserById(osuApiToken: String, osuId: String, log: Boolean = true): User? {
         val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
 
         if (osuUser == null) {
@@ -97,14 +100,16 @@ class UserService(
 
         dataSource.saveUser(newUser)
 
-        discordClient.send(
-            description = "Created user $osuId, with username: ${newUser.username}",
-            color = EmbedColor.BLUE,
-            thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
-            footer = EmbedFooter("Nomination Planner"),
-            confidential = true,
-            gamemodes = listOf()
-        )
+        if (log) {
+            discordClient.send(
+                description = "Created user $osuId, with username: ${newUser.username}",
+                color = EmbedColor.BLUE,
+                thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
+                footer = EmbedFooter("Nomination Planner"),
+                confidential = true,
+                gamemodes = listOf()
+            )
+        }
 
         return newUser
     }
