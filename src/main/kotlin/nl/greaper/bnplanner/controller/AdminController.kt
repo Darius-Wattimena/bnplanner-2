@@ -27,9 +27,9 @@ class AdminController(
         fixService.syncAllUsers(osuApiToken)
     }
 
-    @PostMapping("/sync/users")
+    @PostMapping("/sync/users/ids")
     @RolesAllowed(RolePermission.DEVELOPER)
-    fun fixUsers(
+    fun syncUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam(required = false) force: Boolean?,
         @RequestBody users: Set<String>
