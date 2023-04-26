@@ -17,17 +17,18 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "build.gradle.kts" }}
-            - v1-dependencies-
+            - v2-{{ checksum "build.gradle.kts" }}
+            - v2-
 
-      - run: gradle dependencies
+      - run: ./gradlew dependencies --build-cache --parallel
+
+      - run: ./gradlew build --build-cache --parallel
 
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle.kts" }}
-
-      - run: gradle build
+            - ~/build-cache
+          key: v2-{{ checksum "build.gradle.kts" }}
 
       - run:
           name: Save test results
@@ -70,14 +71,14 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "build.gradle.kts" }}
+            - v2-{{ checksum "build.gradle.kts" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v2-
 
       - run:
           name: Deploy to Elastic Beanstalk
           command: |
-            gradle deployProduction
+            ./gradlew deployProduction
 
 workflows:
   version: 2
