@@ -13,7 +13,7 @@ import org.springframework.test.context.TestConstructor
 
 @ContextConfiguration
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class UserDataSourceTest(database: MongoDatabase): BaseTest() {
+class UserDataSourceTest(database: MongoDatabase) : BaseTest() {
     private val dataSource = UserDataSource(database)
 
     companion object {
@@ -70,10 +70,10 @@ class UserDataSourceTest(database: MongoDatabase): BaseTest() {
     @Test
     fun `Should update user in memory caches correctly when adding new gamemode`() {
         dataSource.addInMemoryUser(TEST_USER)
-        
+
         val updatedUser = TEST_USER.copy(gamemodes = TEST_USER.gamemodes + UserGamemode(Gamemode.mania, Role.NominationAssessment))
         dataSource.addInMemoryUser(updatedUser)
-        
+
         val expectedById = mapOf("1" to updatedUser)
         val expectedByGamemode = createUsersByGamemode(osu = setOf("1"), mania = setOf("1"))
 
