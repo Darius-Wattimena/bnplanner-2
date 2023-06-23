@@ -11,42 +11,58 @@ import org.springframework.stereotype.Component
 
 @Component
 class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>() {
+    // Keep users in memory to speed up requests
+    final val usersByOsuId: MutableMap<String, User> = mutableMapOf()
+    final val usersByGamemode: MutableMap<Gamemode, Set<String>> = mutableMapOf()
+
+    init {
+        Gamemode.values().forEach { gamemode ->
+            usersByGamemode[gamemode] = emptySet()
+        }
+
+        list().forEach {
+            addInMemoryUser(it)
+        }
+    }
+
     override fun initCollection(): MongoCollection<User> {
         return database.getCollection<User>("users")
     }
 
-    // Keep users in memory to speed up requests
-    private val users = list().toMutableList()
-    private val usersByOsuId = users.associateBy { it.osuId }.toMutableMap()
-    private val usersByGamemode = users
-        .flatMap { user -> user.gamemodes.map { it.gamemode to user } }
-        .groupBy({ (gamemode, _) -> gamemode }, { (_, user) -> user })
-        .toMutableMap()
-
-    private fun removeInMemoryUser(user: User) {
-        users.remove(user)
+    fun removeInMemoryUser(user: User) {
         usersByOsuId.remove(user.osuId)
 
-        for (userGamemode in user.gamemodes) {
-            val newUsers = usersByGamemode[userGamemode.gamemode]?.toMutableList() ?: continue
-            newUsers.remove(user)
-            usersByGamemode[userGamemode.gamemode] = newUsers
+        // Loop over all gamemodes as we don't know anymore what gamemode each user was part of
+        usersByGamemode.forEach { (gamemode, usersIds) ->
+            if (usersIds.contains(user.osuId)) {
+                val userIdsWithoutDeleted = usersIds - user.osuId
+                usersByGamemode[gamemode] = userIdsWithoutDeleted
+            }
         }
     }
 
-    private fun addInMemoryUser(user: User) {
-        users.add(user)
+    fun addInMemoryUser(user: User) {
         usersByOsuId[user.osuId] = user
 
-        for (userGamemode in user.gamemodes) {
-            val newUsers = usersByGamemode[userGamemode.gamemode]?.toMutableList() ?: continue
-            newUsers.add(user)
-            usersByGamemode[userGamemode.gamemode] = newUsers
+        val userGamemodes = user.gamemodes.map { it.gamemode }
+
+        Gamemode.values().forEach { gamemode ->
+            val gamemodeUsers = usersByGamemode[gamemode]?.toMutableSet() ?: mutableSetOf()
+            if (gamemode in userGamemodes) {
+                // Add the user to the gamemode
+                gamemodeUsers.add(user.osuId)
+            } else {
+                // Make sure to remove the user from the gamemode if it previously was
+                gamemodeUsers.remove(user.osuId)
+            }
+
+            // Replace all users of our map
+            usersByGamemode[gamemode] = gamemodeUsers
         }
     }
 
     fun searchUser(username: String?, gamemodes: Set<Gamemode>, roles: Set<Role>): Set<User> {
-        val gamemodeUsers = if (gamemodes.isNotEmpty()) {
+        val gamemodeUserIds = if (gamemodes.isNotEmpty()) {
             gamemodes.map { gamemode ->
                 usersByGamemode[gamemode] ?: emptyList()
             }.flatten().toSet()
@@ -54,6 +70,7 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
             usersByGamemode.flatMap { it.value }.toSet()
         }
 
+        val gamemodeUsers = usersByOsuId.filterKeys { it in gamemodeUserIds }.values
         val usernameFilteredUsers = username?.let { gamemodeUsers.filter { user -> user.username.contains(username, true) } } ?: gamemodeUsers
 
         return if (roles.isNotEmpty()) {
