@@ -1,0 +1,30 @@
+spring.jackson.default-property-inclusion: non_null
+
+mongodb:
+  host: localhost
+  port: 27017
+  auth-db: admin
+  username: ""
+  password: ""
+  db: bnplanner
+
+osu:
+  clientId: ""
+  clientSecret: ""
+  redirectUri: ""
+
+recalculation.active: false
+
+cors:
+  uris: http://localhost:3000,http://localhost:8080
+  methods: GET,POST,PUT,OPTIONS,DELETE,PATCH
+  headers: origin,content-type,accept,x-requested-with,authorization
+
+discord:
+  enabled: true
+  token: ""
+  webhook: ""
+  webhookPublic: ""
+
+aiess:
+  token: ""

@@ -6,6 +6,6 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 class ServletInitializer : SpringBootServletInitializer() {
 
     override fun configure(application: SpringApplicationBuilder): SpringApplicationBuilder {
-        return application.sources(BnplannerBackendApplication::class.java)
+        return application.sources(Application::class.java)
     }
 }

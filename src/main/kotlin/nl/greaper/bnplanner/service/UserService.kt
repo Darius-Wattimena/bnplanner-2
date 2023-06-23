@@ -1,7 +1,7 @@
 package nl.greaper.bnplanner.service
 
 import mu.KotlinLogging
-import nl.greaper.bnplanner.client.DiscordWebhookClient
+import nl.greaper.bnplanner.client.DiscordClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.UserDataSource
 import nl.greaper.bnplanner.datasource.UserRecalculateDataSource
@@ -24,7 +24,7 @@ class UserService(
     private val dataSource: UserDataSource,
     private val recalculateDataSource: UserRecalculateDataSource,
     private val osuHttpClient: OsuHttpClient,
-    private val discordClient: DiscordWebhookClient
+    private val discordClient: DiscordClient
 ) {
     companion object {
         const val MAX_USERS = 20

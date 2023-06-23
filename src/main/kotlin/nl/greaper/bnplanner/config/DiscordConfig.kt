@@ -16,11 +16,13 @@ import nl.greaper.bnplanner.datasource.DiscordEventListenerDataSource
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.discord.DiscordEventListener
 import nl.greaper.bnplanner.util.toReadableName
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.awt.Color
 
 @Configuration
+@ConditionalOnProperty(prefix = "discord", name = ["enabled"], havingValue = "true")
 class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
 
     @Bean

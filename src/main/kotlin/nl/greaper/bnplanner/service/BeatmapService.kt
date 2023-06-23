@@ -6,7 +6,7 @@ import nl.greaper.bnplanner.CHANGE_BEATMAP_NOTE_ICON
 import nl.greaper.bnplanner.CREATED_BEATMAP_ICON
 import nl.greaper.bnplanner.DELETED_BEATMAP_ICON
 import nl.greaper.bnplanner.REMOVED_NOMINATOR_ICON
-import nl.greaper.bnplanner.client.DiscordWebhookClient
+import nl.greaper.bnplanner.client.DiscordClient
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.Gamemode
@@ -45,7 +45,7 @@ class BeatmapService(
     private val dataSource: BeatmapDataSource,
     private val userService: UserService,
     private val osuHttpClient: OsuHttpClient,
-    private val discordClient: DiscordWebhookClient
+    private val discordClient: DiscordClient
 ) {
     val log = KotlinLogging.logger { }
 

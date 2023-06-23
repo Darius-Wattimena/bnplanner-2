@@ -1,7 +1,7 @@
 package nl.greaper.bnplanner
 
 import mu.KotlinLogging
-import nl.greaper.bnplanner.client.DiscordWebhookClient
+import nl.greaper.bnplanner.client.DiscordClient
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 class DefaultExceptionHandler(
-    private val discordClient: DiscordWebhookClient
+    private val discordClient: DiscordClient
 ) : ResponseEntityExceptionHandler() {
     private val log = KotlinLogging.logger { }
 

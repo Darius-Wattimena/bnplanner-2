@@ -11,7 +11,7 @@ import nl.greaper.bnplanner.RANKED_STATUS_ICON
 import nl.greaper.bnplanner.RESET_STATUS_ICON
 import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
 import nl.greaper.bnplanner.UPDATED_STATUS_ICON
-import nl.greaper.bnplanner.client.DiscordWebhookClient
+import nl.greaper.bnplanner.client.DiscordClient
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.datasource.UserDataSource
 import nl.greaper.bnplanner.model.Gamemode
@@ -41,7 +41,7 @@ class AiessService(
     private val beatmapDataSource: BeatmapDataSource,
     private val userService: UserService,
     private val userDataSource: UserDataSource,
-    private val discordClient: DiscordWebhookClient
+    private val discordClient: DiscordClient
 ) {
     val log = KotlinLogging.logger { }
 

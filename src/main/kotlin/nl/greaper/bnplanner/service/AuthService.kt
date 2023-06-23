@@ -3,7 +3,7 @@ package nl.greaper.bnplanner.service
 import mu.KotlinLogging
 import nl.greaper.bnplanner.LOGIN_FAILED_ICON
 import nl.greaper.bnplanner.LOGIN_ICON
-import nl.greaper.bnplanner.client.DiscordWebhookClient
+import nl.greaper.bnplanner.client.DiscordClient
 import nl.greaper.bnplanner.model.UserContext
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService(
     private val osuService: OsuService,
-    private val discordClient: DiscordWebhookClient
+    private val discordClient: DiscordClient
 ) {
     private val log = KotlinLogging.logger { }
 

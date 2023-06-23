@@ -10,8 +10,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @ConfigurationPropertiesScan
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
 @EnableScheduling
-class BnplannerBackendApplication
+class Application
 
 fun main(args: Array<String>) {
-    runApplication<BnplannerBackendApplication>(*args)
+    runApplication<Application>(*args)
 }

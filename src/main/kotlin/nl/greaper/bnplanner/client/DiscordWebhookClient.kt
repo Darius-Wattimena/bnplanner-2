@@ -11,16 +11,18 @@ import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedMessage
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.discord.getValue
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "discord", name = ["enabled"], havingValue = "true")
 class DiscordWebhookClient(
     private val dataSource: DiscordEventListenerDataSource,
     private val jda: JDA
-) {
+) : DiscordClient {
     val log = KotlinLogging.logger { }
 
-    fun sendBeatmapUpdate(
+    override fun sendBeatmapUpdate(
         description: String,
         color: EmbedColor,
         beatmapId: String,
@@ -38,7 +40,7 @@ class DiscordWebhookClient(
         )
     }
 
-    fun send(
+    override fun send(
         description: String,
         color: EmbedColor,
         thumbnail: EmbedThumbnail,

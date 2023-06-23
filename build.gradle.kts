@@ -51,6 +51,7 @@ dependencies {
         exclude("opus-java")
     }
 
+    testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
 }

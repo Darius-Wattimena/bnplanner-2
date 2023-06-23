@@ -10,9 +10,11 @@ import org.litote.kmongo.and
 import org.litote.kmongo.deleteOne
 import org.litote.kmongo.eq
 import org.litote.kmongo.getCollection
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "discord", name = ["enabled"], havingValue = "true")
 class DiscordEventListenerDataSource(private val database: MongoDatabase) : BaseDataSource<DiscordEventListener>() {
     override fun initCollection(): MongoCollection<DiscordEventListener> {
         return database.getCollection<DiscordEventListener>("discord")

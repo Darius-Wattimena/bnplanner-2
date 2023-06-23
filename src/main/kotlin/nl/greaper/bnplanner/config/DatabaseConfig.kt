@@ -8,10 +8,10 @@ import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoDatabase
 import org.litote.kmongo.service.ClassMappingType
 import org.springframework.context.annotation.Bean
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Configuration
 import java.net.URLEncoder
 
-@Component
+@Configuration
 class DatabaseConfig {
     val encoding = "UTF-8"
 
