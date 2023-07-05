@@ -350,17 +350,26 @@ class BeatmapService(
                 it[0] to it[1]
             }
 
-            val newNominators = if (currentFirstNominator.nominatorId == oldNominator) {
+            val (newFirstNominator, newSecondNominator) = if (currentFirstNominator.nominatorId == oldNominator) {
                 BeatmapNominator(newNominator, false) to currentSecondNominator
             } else {
                 currentFirstNominator to BeatmapNominator(newNominator, false)
             }
 
-            val updatedGamemode = updatingGamemode.copy(
-                nominators = listOf(newNominators.first, newNominators.second)
-            )
 
-            updatedGamemode
+            // Update the BeatmapGamemode to null when both nominators are missing and this is not the last gamemode of the beatmap set
+            if (newFirstNominator.nominatorId == MISSING_USER_ID
+                && newSecondNominator.nominatorId == MISSING_USER_ID
+                && databaseBeatmap.gamemodes.size > 1
+            ) {
+                null
+            } else {
+                val updatedGamemode = updatingGamemode.copy(
+                    nominators = listOf(newFirstNominator, newSecondNominator)
+                )
+
+                updatedGamemode
+            }
         } ?: return null
 
         dataSource.update(updatedBeatmap)
@@ -369,7 +378,7 @@ class BeatmapService(
         return updatedBeatmap.toExposedBeatmap()
     }
 
-    fun updateBeatmapGamemode(beatmap: Beatmap, gamemode: Gamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap? {
+    fun updateBeatmapGamemode(beatmap: Beatmap, gamemode: Gamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode?): Beatmap? {
         val updatingGamemode = beatmap.gamemodes.find { it.gamemode == gamemode }
 
         if (updatingGamemode == null) {
@@ -398,9 +407,18 @@ class BeatmapService(
         )
     }
 
-    fun updateBeatmapGamemode(beatmap: Beatmap, updatingGamemode: BeatmapGamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap {
+    fun updateBeatmapGamemode(beatmap: Beatmap, updatingGamemode: BeatmapGamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode?): Beatmap {
+        val newGamemode = new(updatingGamemode)
+
+        // Only take the updated gamemode if the new gamemode isn't null
+        val updatedGamemodes = if (newGamemode == null) {
+            beatmap.gamemodes - updatingGamemode
+        } else {
+            beatmap.gamemodes - updatingGamemode + newGamemode
+        }
+        
         return beatmap.copy(
-            gamemodes = beatmap.gamemodes - updatingGamemode + new(updatingGamemode),
+            gamemodes = updatedGamemodes,
             dateUpdated = Instant.now()
         )
     }
