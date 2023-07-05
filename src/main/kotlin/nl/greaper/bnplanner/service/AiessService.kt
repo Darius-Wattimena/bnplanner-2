@@ -31,6 +31,7 @@ import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.model.osu.MeGroup
 import nl.greaper.bnplanner.model.toReadableName
+import nl.greaper.bnplanner.service.UserService.Companion.MISSING_USER_ID
 import nl.greaper.bnplanner.util.toReadableName
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -53,8 +54,8 @@ class AiessService(
                 ?: BeatmapGamemode(
                     gamemode = gamemode,
                     nominators = listOf(
-                        BeatmapNominator("0", false),
-                        BeatmapNominator("0", false)
+                        BeatmapNominator(MISSING_USER_ID, false),
+                        BeatmapNominator(MISSING_USER_ID, false)
                     ),
                     isReady = false
                 )
@@ -86,8 +87,8 @@ class AiessService(
             BeatmapGamemode(
                 gamemode = mode,
                 nominators = listOf(
-                    BeatmapNominator("0", false),
-                    BeatmapNominator("0", false)
+                    BeatmapNominator(MISSING_USER_ID, false),
+                    BeatmapNominator(MISSING_USER_ID, false)
                 ),
                 isReady = false
             )
@@ -97,9 +98,13 @@ class AiessService(
 
         // Mapper is unknown so we need to create one
         if (mapper == null) {
-            val mapper = User(event.mapperId, event.mapper, event.modes.map { mode -> UserGamemode(mode, Role.Mapper) })
+            val unknownMapper = User(
+                osuId = event.mapperId,
+                username = event.mapper,
+                gamemodes = event.modes.map { mode -> UserGamemode(mode, Role.Mapper) }
+            )
 
-            userDataSource.saveUser(mapper)
+            userDataSource.saveUser(unknownMapper)
         }
 
         return Beatmap(
@@ -199,7 +204,7 @@ class AiessService(
                 logNomination(databaseBeatmap, beatmapStatus, userId, username, updatingGamemode.gamemode)
                 currentFirstNominator to newNominator
             }
-            currentFirstNominator.nominatorId == "0" -> {
+            currentFirstNominator.nominatorId == MISSING_USER_ID -> {
                 val newNominator = BeatmapNominator(
                     nominatorId = userId,
                     hasNominated = true
@@ -209,7 +214,7 @@ class AiessService(
                 logNomination(databaseBeatmap, beatmapStatus, userId, username, updatingGamemode.gamemode)
                 newNominator to currentSecondNominator
             }
-            currentSecondNominator.nominatorId == "0" -> {
+            currentSecondNominator.nominatorId == MISSING_USER_ID -> {
                 val newNominator = BeatmapNominator(
                     nominatorId = userId,
                     hasNominated = true

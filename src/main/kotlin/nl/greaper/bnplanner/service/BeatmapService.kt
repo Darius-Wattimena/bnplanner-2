@@ -26,6 +26,7 @@ import nl.greaper.bnplanner.model.beatmap.NewBeatmap
 import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
+import nl.greaper.bnplanner.service.UserService.Companion.MISSING_USER_ID
 import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import nl.greaper.bnplanner.util.toReadableName
@@ -136,8 +137,8 @@ class BeatmapService(
             BeatmapGamemode(
                 gamemode = it,
                 nominators = listOf(
-                    BeatmapNominator("0", false),
-                    BeatmapNominator("0", false)
+                    BeatmapNominator(MISSING_USER_ID, false),
+                    BeatmapNominator(MISSING_USER_ID, false)
                 ),
                 isReady = false
             )
@@ -236,7 +237,7 @@ class BeatmapService(
             val missingNominatorFilters = missingNominator.map { gamemode ->
                 and(
                     Beatmap::gamemodes / BeatmapGamemode::gamemode eq gamemode,
-                    Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId eq "0"
+                    Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId eq MISSING_USER_ID
                 )
             }
 
@@ -375,8 +376,8 @@ class BeatmapService(
             val newBeatmapGamemode = BeatmapGamemode(
                 gamemode = gamemode,
                 nominators = listOf(
-                    BeatmapNominator("0", false),
-                    BeatmapNominator("0", false)
+                    BeatmapNominator(MISSING_USER_ID, false),
+                    BeatmapNominator(MISSING_USER_ID, false)
                 ),
                 isReady = false
             )
@@ -481,11 +482,11 @@ class BeatmapService(
             return nominatorChangesText
         }
 
-        if (newNominator != null && newNominator.osuId != "0") {
+        if (newNominator != null && newNominator.osuId != MISSING_USER_ID) {
             nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator.username}](https://osu.ppy.sh/users/${newNominator.osuId})**"
         }
 
-        if (oldNominator != null && oldNominator.osuId != "0") {
+        if (oldNominator != null && oldNominator.osuId != MISSING_USER_ID) {
             val optionalNewLine = if (nominatorChangesText != "") {
                 // Add a \n if we added a nominator
                 "\n"
@@ -589,8 +590,8 @@ class BeatmapService(
     }
 
     private fun convertLegacyBeatmapToBeatmap(legacyBeatmap: LegacyBeatmap): Beatmap? {
-        val nominatorOne = legacyBeatmap.nominators.getOrNull(0)?.toString() ?: "0"
-        val nominatorTwo = legacyBeatmap.nominators.getOrNull(1)?.toString() ?: "0"
+        val nominatorOne = legacyBeatmap.nominators.getOrNull(0)?.toString() ?: MISSING_USER_ID
+        val nominatorTwo = legacyBeatmap.nominators.getOrNull(1)?.toString() ?: MISSING_USER_ID
 
         // This should never happen
         val beatmapStatus = BeatmapStatus.fromPriorityStatus(legacyBeatmap.status.toInt()) ?: return null

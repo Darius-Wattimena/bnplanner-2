@@ -28,6 +28,7 @@ class UserService(
 ) {
     companion object {
         const val MAX_USERS = 20
+        const val MISSING_USER_ID = "0"
     }
 
     private val log = KotlinLogging.logger { }
@@ -120,9 +121,9 @@ class UserService(
     fun findUserById(osuId: String): User? {
         if (osuId == "-1" || osuId == "-2") return null
 
-        if (osuId == "0") {
+        if (osuId == MISSING_USER_ID) {
             return User(
-                "0",
+                MISSING_USER_ID,
                 "None",
                 gamemodes = emptyList()
             )
