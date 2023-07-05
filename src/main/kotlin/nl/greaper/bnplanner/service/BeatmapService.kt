@@ -369,7 +369,19 @@ class BeatmapService(
     }
 
     fun updateBeatmapGamemode(beatmap: Beatmap, gamemode: Gamemode, new: (old: BeatmapGamemode) -> BeatmapGamemode): Beatmap? {
-        val updatingGamemode = beatmap.gamemodes.find { it.gamemode == gamemode } ?: return null
+        val updatingGamemode = beatmap.gamemodes.find { it.gamemode == gamemode }
+
+        if (updatingGamemode == null) {
+            val newBeatmapGamemode = BeatmapGamemode(
+                gamemode = gamemode,
+                nominators = listOf(
+                    BeatmapNominator("0", false),
+                    BeatmapNominator("0", false)
+                ),
+                isReady = false
+            )
+            return updateBeatmapGamemode(beatmap, newBeatmapGamemode, new)
+        }
 
         return updateBeatmapGamemode(beatmap, updatingGamemode, new)
     }
