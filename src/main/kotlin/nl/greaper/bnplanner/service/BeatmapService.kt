@@ -39,6 +39,7 @@ import org.litote.kmongo.`in`
 import org.litote.kmongo.or
 import org.litote.kmongo.regex
 import org.springframework.stereotype.Service
+import java.lang.StringBuilder
 import java.time.Instant
 
 @Service
@@ -372,8 +373,10 @@ class BeatmapService(
             }
         } ?: return null
 
+        // Use the databaseBeatmap here, so we always log to all gamemodes even the deleted ones
+        val gamemodesBeforeUpdate = databaseBeatmap.gamemodes.map { it.gamemode }
         dataSource.update(updatedBeatmap)
-        logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator, gamemode)
+        logUpdatedNominators(osuApiToken, updatedBeatmap, oldNominator, newNominator, gamemode, gamemodesBeforeUpdate)
 
         return updatedBeatmap.toExposedBeatmap()
     }
@@ -426,10 +429,12 @@ class BeatmapService(
     fun logBeatmapAdded(osuApiToken: String, beatmap: Beatmap) {
         val editor = userService.getEditor(osuApiToken)
         log.info { "[CREATE] ${editor?.username} added (beatmap = ${beatmap.osuId})" }
+        val gamemodes = beatmap.gamemodes.joinToString { it.gamemode.toReadableName() }
 
         discordClient.sendBeatmapUpdate(
-            """$CREATED_BEATMAP_ICON **Created
-                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
+            """$CREATED_BEATMAP_ICON **Created**
+                Gamemodes: $gamemodes
+                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
                 Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
             """.prependIndent(),
             color = EmbedColor.GREEN,
@@ -492,30 +497,41 @@ class BeatmapService(
         )
     }
 
-    private fun getChangedNominatorText(newNominator: User?, oldNominator: User?): String {
-        var nominatorChangesText = ""
+    private fun getChangedNominatorText(
+        newNominator: User?,
+        oldNominator: User?,
+        isMultipleGamemodes: Boolean? = null,
+        gamemode: Gamemode? = null
+    ): String {
+        val nominatorChangesText = StringBuilder("")
 
         // We don't have to create any changed nominator text when nothing changed in the first place
         if (newNominator?.osuId == oldNominator?.osuId) {
-            return nominatorChangesText
+            return nominatorChangesText.toString()
         }
 
         if (newNominator != null && newNominator.osuId != MISSING_USER_ID) {
-            nominatorChangesText = "$ADDED_NOMINATOR_ICON **Added [${newNominator.username}](https://osu.ppy.sh/users/${newNominator.osuId})**"
+            nominatorChangesText.append("$ADDED_NOMINATOR_ICON **Added [${newNominator.username}](https://osu.ppy.sh/users/${newNominator.osuId})**")
+
+            if (isMultipleGamemodes == true && gamemode != null) {
+                nominatorChangesText.append(" [${gamemode.toReadableName()}]")
+            }
         }
 
         if (oldNominator != null && oldNominator.osuId != MISSING_USER_ID) {
-            val optionalNewLine = if (nominatorChangesText != "") {
-                // Add a \n if we added a nominator
-                "\n"
-            } else {
-                ""
+            // Add a \n if we added a nominator as well
+            if (nominatorChangesText.toString() != "") {
+                nominatorChangesText.append("\n")
             }
 
-            nominatorChangesText += "$optionalNewLine$REMOVED_NOMINATOR_ICON **Removed [${oldNominator.username}](https://osu.ppy.sh/users/${oldNominator.osuId})**"
+            nominatorChangesText.append("$REMOVED_NOMINATOR_ICON **Removed [${oldNominator.username}](https://osu.ppy.sh/users/${oldNominator.osuId})**")
+
+            if (isMultipleGamemodes == true && gamemode != null) {
+                nominatorChangesText.append(" [${gamemode.toReadableName()}]")
+            }
         }
 
-        return nominatorChangesText
+        return nominatorChangesText.toString()
     }
 
     fun logAiessUpdatedNominator(beatmap: Beatmap, oldNominatorId: String, newNominatorId: String, gamemode: Gamemode) {
@@ -586,24 +602,42 @@ class BeatmapService(
         )
     }
 
-    fun logUpdatedNominators(osuApiToken: String, beatmap: Beatmap, oldNominatorId: String, newNominatorId: String, gamemode: Gamemode) {
+    fun logUpdatedNominators(
+        osuApiToken: String,
+        beatmap: Beatmap,
+        oldNominatorId: String,
+        newNominatorId: String,
+        gamemode: Gamemode,
+        gamemodesBeforeUpdate: List<Gamemode>
+    ) {
         val editor = userService.getEditor(osuApiToken)
         val oldNominator = userService.findUserById(oldNominatorId)
         val newNominator = userService.findUserById(newNominatorId)
 
-        val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
+        // Take the biggest list of gamemodes to publish
+        // On removal of a gamemode we want to publish to the deleted gamemode as well.
+        // On adding of a new gamemode we want to publish to the existing ane new gamemode.
+        val gamemodesToMessage = if (beatmap.gamemodes.size > gamemodesBeforeUpdate.size) {
+            beatmap.gamemodes.map { it.gamemode }
+        } else {
+            gamemodesBeforeUpdate
+        }
+        val isMultipleGamemodes = gamemodesToMessage.size > 1
+
+        val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator, isMultipleGamemodes, gamemode)
         log.info { "[UPDATE] ${editor?.username} changed nominators from $oldNominatorId to $newNominatorId (beatmap = ${beatmap.osuId})" }
+        val beatmapGamemodeMessagePart = gamemodesToMessage.joinToString { it.toReadableName() }
 
         discordClient.sendBeatmapUpdate(
             """$nominatorChangesText
                 **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]
+                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$beatmapGamemodeMessagePart]
             """.prependIndent(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
             editor = editor,
             confidential = false,
-            gamemodes = beatmap.gamemodes.map { it.gamemode }
+            gamemodes = gamemodesToMessage
         )
     }
 
