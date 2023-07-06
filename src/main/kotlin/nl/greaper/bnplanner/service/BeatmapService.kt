@@ -357,11 +357,10 @@ class BeatmapService(
                 currentFirstNominator to BeatmapNominator(newNominator, false)
             }
 
-
             // Update the BeatmapGamemode to null when both nominators are missing and this is not the last gamemode of the beatmap set
-            if (newFirstNominator.nominatorId == MISSING_USER_ID
-                && newSecondNominator.nominatorId == MISSING_USER_ID
-                && databaseBeatmap.gamemodes.size > 1
+            if (newFirstNominator.nominatorId == MISSING_USER_ID &&
+                newSecondNominator.nominatorId == MISSING_USER_ID &&
+                databaseBeatmap.gamemodes.size > 1
             ) {
                 null
             } else {
@@ -419,7 +418,7 @@ class BeatmapService(
         } else {
             beatmap.gamemodes - updatingGamemode + newGamemode
         }
-        
+
         return beatmap.copy(
             gamemodes = updatedGamemodes,
             dateUpdated = Instant.now()
