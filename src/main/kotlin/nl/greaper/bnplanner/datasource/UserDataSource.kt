@@ -80,7 +80,9 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
                 }
             }.flatten().toSet()
         } else {
-            usernameFilteredUsers.toSet()
+            // Don't show mappers when searching, except when explicitly providing them
+            usernameFilteredUsers.filter { user -> user.gamemodes.all { gamemode -> gamemode.role != Role.Mapper } }
+                .toSet()
         }
     }
 
