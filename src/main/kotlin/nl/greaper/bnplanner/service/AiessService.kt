@@ -34,6 +34,7 @@ import nl.greaper.bnplanner.model.toReadableName
 import nl.greaper.bnplanner.service.UserService.Companion.MISSING_USER_ID
 import nl.greaper.bnplanner.util.toReadableName
 import org.springframework.stereotype.Service
+import java.lang.StringBuilder
 import java.time.Instant
 
 @Service
@@ -254,15 +255,15 @@ class AiessService(
     }
 
     private fun logIncompleteAiessBeatmapEvent(event: AiessBeatmapEvent) {
+        val message = StringBuilder()
+            .append("**ERROR: Incomplete AiessBeatmapEvent**")
+            .append("\n```${jacksonObjectMapper().writeValueAsString(event)}```")
+
         discordClient.send(
-            """**ERROR: Incomplete AiessBeatmapEvent**
-                ```
-                ${jacksonObjectMapper().writeValueAsString(event)}
-                ```
-            """.prependIndent(),
-            EmbedColor.RED,
-            EmbedThumbnail("https://b.ppy.sh/thumb/${event.beatmapSetId}l.jpg"),
-            EmbedFooter("Aiess"),
+            description = message.toString(),
+            color = EmbedColor.RED,
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${event.beatmapSetId}l.jpg"),
+            footer = EmbedFooter("Aiess"),
             confidential = true,
             gamemodes = listOf()
         )
@@ -270,15 +271,16 @@ class AiessService(
 
     private fun logInstantStatus(beatmap: Beatmap, newStatus: BeatmapStatus) {
         val messageIcon = getMessageIcon(newStatus)
+        val message = StringBuilder()
+            .append("**$messageIcon Updated status to $newStatus**")
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
         discordClient.send(
-            """**$messageIcon Updated status to $newStatus**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
-            getMessageColor(newStatus),
-            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            EmbedFooter("Aiess"),
+            description = message.toString(),
+            color = getMessageColor(newStatus),
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = EmbedFooter("Aiess"),
             confidential = true,
             gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
@@ -291,14 +293,16 @@ class AiessService(
             EmbedFooter("Aiess")
         }
 
+        val message = StringBuilder()
+            .append("$CREATED_BEATMAP_ICON **Created**")
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
+
         discordClient.send(
-            """$CREATED_BEATMAP_ICON **Created**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
-            getMessageColor(newStatus),
-            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            footer,
+            description = message.toString(),
+            color = getMessageColor(newStatus),
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = footer,
             confidential = true,
             gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
@@ -307,15 +311,16 @@ class AiessService(
     private fun logNomination(beatmap: Beatmap, newStatus: BeatmapStatus, nominatorId: String, username: String, gamemode: Gamemode? = null) {
         val messageIcon = getMessageIcon(newStatus)
         val gamemodeText = gamemode?.let { gamemode.toReadableName() } ?: ""
+        val message = StringBuilder()
+            .append("**$messageIcon Updated status to $newStatus**")
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$gamemodeText]")
 
         discordClient.send(
-            """**$messageIcon Updated status to $newStatus**
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$gamemodeText]
-            """.prependIndent(),
-            getMessageColor(newStatus),
-            EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
-            EmbedFooter(username, "https://a.ppy.sh/$nominatorId"),
+            description = message.toString(),
+            color = getMessageColor(newStatus),
+            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
+            footer = EmbedFooter(username, "https://a.ppy.sh/$nominatorId"),
             confidential = true,
             gamemodes = beatmap.gamemodes.map { it.gamemode }
         )
@@ -410,13 +415,9 @@ class AiessService(
         }
 
         val text = if (event.type == AiessUserEventType.add) {
-            """**$topLine**
-                Gamemode ${event.gamemode}
-            """.prependIndent()
+            "**$topLine**\nGamemode ${event.gamemode}"
         } else {
-            """**$topLine**
-                Gamemode ${event.gamemode}
-            """.prependIndent()
+            "**$topLine**\nGamemode ${event.gamemode}"
         }
 
         discordClient.send(

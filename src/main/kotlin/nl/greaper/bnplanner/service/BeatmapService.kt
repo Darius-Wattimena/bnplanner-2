@@ -430,12 +430,14 @@ class BeatmapService(
         log.info { "[CREATE] ${editor?.username} added (beatmap = ${beatmap.osuId})" }
         val gamemodes = beatmap.gamemodes.joinToString { it.gamemode.toReadableName() }
 
+        val message = StringBuilder()
+            .append("$CREATED_BEATMAP_ICON **Created**")
+            .append("\nGamemodes: $gamemodes")
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
+
         discordClient.sendBeatmapUpdate(
-            """$CREATED_BEATMAP_ICON **Created**
-                Gamemodes: $gamemodes
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.GREEN,
             beatmapId = beatmap.osuId,
             editor = editor,
@@ -448,11 +450,13 @@ class BeatmapService(
         val editor = userService.getEditor(osuApiToken)
         log.info { "[DELETE] ${editor?.username} deleted (beatmap = ${beatmap.osuId})" }
 
+        val message = StringBuilder()
+            .append("$DELETED_BEATMAP_ICON **Deleted")
+            .append("\n[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
+
         discordClient.sendBeatmapUpdate(
-            """$DELETED_BEATMAP_ICON **Deleted
-                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.RED,
             beatmapId = beatmap.osuId,
             editor = editor,
@@ -465,12 +469,14 @@ class BeatmapService(
         val editor = userService.getEditor(osuApiToken)
         log.info { "[UPDATE] ${editor?.username} changed note (beatmap = ${beatmap.osuId})" }
 
+        val message = StringBuilder()
+            .append("$CHANGE_BEATMAP_NOTE_ICON **Updated note**")
+            .append("\n```${beatmap.note.replace("""\n  +""".toRegex(), "\n")}```")
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
+
         discordClient.sendBeatmapUpdate(
-            """$CHANGE_BEATMAP_NOTE_ICON **Updated note**
-                ```${beatmap.note.replace("""\n  +""".toRegex(), "\n")}```
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
             editor = editor,
@@ -483,11 +489,13 @@ class BeatmapService(
         val editor = userService.getEditor(osuApiToken)
         log.info { "[UPDATE] ${editor?.username} changed status to ${beatmap.status.name} (beatmap = ${beatmap.osuId})" }
 
+        val message = StringBuilder()
+            .append("${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}")
+            .append("\n[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
+
         discordClient.sendBeatmapUpdate(
-            """${beatmap.status.getEmojiIcon()} **Updated status to ${beatmap.status.name}
-                [${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
             editor = editor,
@@ -538,12 +546,13 @@ class BeatmapService(
         val newNominator = userService.findUserById(newNominatorId)
 
         val nominatorChangesText = getChangedNominatorText(newNominator, oldNominator)
+        val message = StringBuilder()
+            .append(nominatorChangesText)
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]")
 
         discordClient.send(
-            """$nominatorChangesText
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
             footer = EmbedFooter("Aiess"),
@@ -588,11 +597,13 @@ class BeatmapService(
             logGamemodeUpdatedNominators(editor, beatmap.osuId, beatmapGamemode, oldBeatmapGamemode)
         }
 
+        val message = StringBuilder()
+            .append(nominatorChangesText.joinToString { "\n" })
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${beatmap.gamemodes.map { it.gamemode.toReadableName()}}]")
+
         discordClient.sendBeatmapUpdate(
-            """${nominatorChangesText.joinToString { "\n" }}
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${beatmap.gamemodes.map { it.gamemode.toReadableName()}}]
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
             editor = editor,
@@ -627,11 +638,13 @@ class BeatmapService(
         log.info { "[UPDATE] ${editor?.username} changed nominators from $oldNominatorId to $newNominatorId (beatmap = ${beatmap.osuId})" }
         val beatmapGamemodeMessagePart = gamemodesToMessage.joinToString { it.toReadableName() }
 
+        val message = StringBuilder()
+            .append(nominatorChangesText)
+            .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
+            .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$beatmapGamemodeMessagePart]")
+
         discordClient.sendBeatmapUpdate(
-            """$nominatorChangesText
-                **[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**
-                Mapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$beatmapGamemodeMessagePart]
-            """.prependIndent(),
+            description = message.toString(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
             editor = editor,
