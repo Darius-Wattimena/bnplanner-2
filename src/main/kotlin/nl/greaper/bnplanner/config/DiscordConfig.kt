@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -76,17 +77,33 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
                 null
             }
 
-            val replyMessage = StringBuilder("**Registered listener at channel**\n")
-                .let { builder ->
-                    if (gamemode != null) {
-                        builder.append("Gamemode = `${gamemode.toReadableName()}`")
-                    } else {
-                        builder.append("Gamemode = `all`")
+            val isAdmin = event.member?.permissions?.contains(Permission.ADMINISTRATOR) == true
+
+            val replyMessage = if (isAdmin) {
+                StringBuilder("**Registered listener at channel**\n")
+                    .let { builder ->
+                        if (gamemode != null) {
+                            builder.append("Gamemode = `${gamemode.toReadableName()}`")
+                        } else {
+                            builder.append("Gamemode = `all`")
+                        }
                     }
-                }
-                .toString()
+                    .toString()
+            } else {
+                "**You need to be an administrator to execute this command**"
+            }
 
             event.deferReply().queue()
+
+            if (!isAdmin) {
+                val failedEmbedMessage = EmbedBuilder()
+                    .setDescription(replyMessage)
+                    .setColor(Color.RED)
+                    .build()
+
+                event.hook.sendMessageEmbeds(failedEmbedMessage).queue()
+                return
+            }
 
             val guildId = event.guild!!.id
             val channelId = event.channel.id
