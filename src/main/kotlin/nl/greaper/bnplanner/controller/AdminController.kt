@@ -28,7 +28,7 @@ class AdminController(
     }
 
     @PostMapping("/sync/users/ids")
-    @RolesAllowed(RolePermission.DEVELOPER)
+    @RolesAllowed(RolePermission.ADMIN)
     fun syncUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam(required = false) force: Boolean?,
@@ -38,7 +38,7 @@ class AdminController(
     }
 
     @GetMapping("/sync/beatmaps/pending")
-    @RolesAllowed(RolePermission.DEVELOPER)
+    @RolesAllowed(RolePermission.ADMIN)
     fun syncBeatmapsByStatus(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam(required = false) status: BeatmapStatus? = null
