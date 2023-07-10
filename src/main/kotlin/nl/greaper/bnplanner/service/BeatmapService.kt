@@ -81,6 +81,23 @@ class BeatmapService(
         return dataSource.count(setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator))
     }
 
+    fun findBeatmapsIds(
+        artist: String?,
+        title: String?,
+        mapper: String?,
+        status: Set<BeatmapStatus>,
+        nominators: Set<String>,
+        page: BeatmapPage,
+        gamemodes: Set<Gamemode>,
+        missingNominator: Set<Gamemode>
+    ): Set<String> {
+        val filter = setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator)
+
+        return dataSource.findAll(filter)
+            .map { it.osuId }
+            .toSet()
+    }
+
     fun findBeatmaps(
         osuApiToken: String,
         artist: String?,

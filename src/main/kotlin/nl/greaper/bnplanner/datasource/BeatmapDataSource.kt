@@ -59,7 +59,15 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
             findQuery.skip(from)
         }
 
-        return findQuery.toMutableList()
+        return findQuery.toList()
+    }
+
+    fun findAll(
+        filter: Bson,
+    ): List<Beatmap> {
+        val findQuery = collection.find(filter)
+
+        return findQuery.toList()
     }
 
     fun update(updatedBeatmap: Beatmap) {
