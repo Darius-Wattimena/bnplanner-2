@@ -16,19 +16,16 @@ class FixService(
     val log = KotlinLogging.logger { }
 
     fun syncAllBeatmaps(osuToken: String, page: BeatmapPage) {
-        val beatmaps = beatmapService.findBeatmaps(
-            osuApiToken = osuToken,
+        val beatmaps = beatmapService.findBeatmapsIds(
             artist = null,
             title = null,
             mapper = null,
             status = emptySet(),
             nominators = emptySet(),
             page = page,
-            from = 0,
-            to = 9999,
             gamemodes = emptySet(),
             missingNominator = emptySet()
-        ).map { it.osuId }.toSet()
+        )
 
         syncBeatmaps(osuToken, beatmaps)
     }
