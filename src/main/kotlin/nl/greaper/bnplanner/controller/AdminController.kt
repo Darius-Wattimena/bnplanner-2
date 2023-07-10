@@ -23,8 +23,8 @@ class AdminController(
     @RolesAllowed(RolePermission.DEVELOPER)
     fun syncAllUsers(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String
-    ) {
-        fixService.syncAllUsers(osuApiToken)
+    ): FixService.SyncInfo {
+        return fixService.syncAllUsers(osuApiToken)
     }
 
     @PostMapping("/sync/users/ids")
@@ -33,17 +33,17 @@ class AdminController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam(required = false) force: Boolean?,
         @RequestBody users: Set<String>
-    ) {
-        fixService.syncUsers(osuApiToken, users, force ?: false)
+    ): FixService.SyncInfo {
+        return fixService.syncUsers(osuApiToken, users, force ?: false)
     }
 
-    @GetMapping("/sync/beatmaps/pending")
+    @PostMapping("/sync/beatmaps/pending")
     @RolesAllowed(RolePermission.ADMIN)
     fun syncBeatmapsByStatus(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestParam(required = false) status: BeatmapStatus? = null
-    ) {
-        if (status == null) {
+        @RequestParam(required = false) status: Set<BeatmapStatus>? = null
+    ): FixService.SyncInfo {
+        return if (status == null) {
             fixService.syncAllBeatmaps(osuApiToken, BeatmapPage.PENDING)
         } else {
             fixService.syncBeatmaps(osuApiToken, BeatmapPage.PENDING, status)

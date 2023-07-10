@@ -6,6 +6,7 @@ import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import org.springframework.stereotype.Service
 import kotlin.random.Random
+import kotlin.system.measureTimeMillis
 
 @Service
 class FixService(
@@ -15,58 +16,55 @@ class FixService(
 ) {
     val log = KotlinLogging.logger { }
 
-    fun syncAllBeatmaps(osuToken: String, page: BeatmapPage) {
+    fun syncAllBeatmaps(osuToken: String, page: BeatmapPage): SyncInfo {
+        return syncBeatmaps(
+            osuToken = osuToken,
+            page = page,
+            status = emptySet()
+        )
+    }
+
+    fun syncBeatmaps(osuToken: String, page: BeatmapPage, status: Set<BeatmapStatus>): SyncInfo {
         val beatmaps = beatmapService.findBeatmapsIds(
             artist = null,
             title = null,
             mapper = null,
-            status = emptySet(),
+            status = status,
             nominators = emptySet(),
             page = page,
             gamemodes = emptySet(),
             missingNominator = emptySet()
         )
 
-        syncBeatmaps(osuToken, beatmaps)
+        return syncBeatmaps(osuToken, beatmaps)
     }
 
-    fun syncBeatmaps(osuToken: String, page: BeatmapPage, status: BeatmapStatus) {
-        val beatmaps = beatmapService.findBeatmaps(
-            osuApiToken = osuToken,
-            artist = null,
-            title = null,
-            mapper = null,
-            status = setOf(status),
-            nominators = emptySet(),
-            page = page,
-            from = 0,
-            to = 9999,
-            gamemodes = emptySet(),
-            missingNominator = emptySet()
-        ).map { it.osuId }.toSet()
-
-        syncBeatmaps(osuToken, beatmaps)
-    }
-
-    fun syncBeatmaps(osuToken: String, beatmaps: Set<String>) {
+    fun syncBeatmaps(osuToken: String, beatmaps: Set<String>): SyncInfo {
         val totalBeatmaps = beatmaps.count()
 
         log.info { "Checking $totalBeatmaps beatmaps." }
 
-        beatmaps.forEachIndexed { index, beatmapId ->
-            val beatmap = beatmapService.findBeatmap(beatmapId)
+        val duration = measureTimeMillis {
+            beatmaps.forEachIndexed { index, beatmapId ->
+                val beatmap = beatmapService.findBeatmap(beatmapId)
 
-            // Remove the users when we already know it
-            if (beatmap != null) {
-                beatmapService.syncBeatmap(osuToken, beatmap)
+                // Remove the users when we already know it
+                if (beatmap != null) {
+                    beatmapService.syncBeatmap(osuToken, beatmap)
 
-                log.info { "[${index + 1}/$totalBeatmaps] Beatmap ${beatmap.osuId} synced, sleeping." }
-                Thread.sleep(1_000L + Random.nextInt(0, 1000))
+                    log.info { "[${index + 1}/$totalBeatmaps] Beatmap ${beatmap.osuId} synced, sleeping." }
+                    Thread.sleep(1_000L + Random.nextInt(0, 1000))
+                }
             }
         }
+
+        return SyncInfo(
+            duration = duration,
+            totalSynced = totalBeatmaps
+        )
     }
 
-    fun syncAllUsers(osuToken: String) {
+    fun syncAllUsers(osuToken: String): SyncInfo {
         val allBeatmaps = beatmapDataSource.list()
         val allUsers = mutableSetOf<String>()
 
@@ -90,33 +88,45 @@ class FixService(
             }
         }.toSet()
 
-        syncUsers(
+        return syncUsers(
             osuToken = osuToken,
             users = unrestrictedUsers,
             force = true
         )
     }
 
-    fun syncUsers(osuToken: String, users: Set<String>, force: Boolean = false) {
+    fun syncUsers(osuToken: String, users: Set<String>, force: Boolean = false): SyncInfo {
         val token = osuToken.removePrefix("Bearer ")
         val totalUsers = users.count()
 
         log.info { "Checking $totalUsers users." }
 
-        users.forEachIndexed { index, userId ->
-            val currentUser = userService.findUserById(userId)
-            if (force || currentUser == null || currentUser.restricted == true) {
-                // Remove the users when we already know it
-                if (force && currentUser != null) {
-                    userService.deleteUser(currentUser)
-                }
+        val duration = measureTimeMillis {
+            users.forEachIndexed { index, userId ->
+                val currentUser = userService.findUserById(userId)
+                if (force || currentUser == null || currentUser.restricted == true) {
+                    // Remove the users when we already know it
+                    if (force && currentUser != null) {
+                        userService.deleteUser(currentUser)
+                    }
 
-                userService.forceFindUserById(token, userId)
-                log.info { "[${index + 1}/$totalUsers] User $userId synced, sleeping." }
-                Thread.sleep(1_000L + Random.nextInt(0, 1000))
-            } else {
-                log.info { "[${index + 1}/$totalUsers] User ${currentUser.username} is already good, skipping." }
+                    userService.forceFindUserById(token, userId)
+                    log.info { "[${index + 1}/$totalUsers] User $userId synced, sleeping." }
+                    Thread.sleep(1_000L + Random.nextInt(0, 1000))
+                } else {
+                    log.info { "[${index + 1}/$totalUsers] User ${currentUser.username} is already good, skipping." }
+                }
             }
         }
+
+        return SyncInfo(
+            duration = duration,
+            totalSynced = totalUsers
+        )
     }
+
+    data class SyncInfo(
+        val duration: Long,
+        val totalSynced: Int
+    )
 }

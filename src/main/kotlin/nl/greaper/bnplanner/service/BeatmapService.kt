@@ -206,7 +206,13 @@ class BeatmapService(
         val newStatus = when (osuBeatmap.ranked) {
             1, 2 -> BeatmapStatus.Ranked
             3 -> BeatmapStatus.Qualified
-            else -> null
+            else -> {
+                if (osuBeatmap.currentNominations.isNotEmpty()) {
+                    BeatmapStatus.Nominated
+                } else {
+                    null
+                }
+            }
         }
 
         val dateRanked = if (newStatus == BeatmapStatus.Ranked) {
@@ -215,11 +221,74 @@ class BeatmapService(
             null
         }
 
+        val nominators = osuBeatmap.currentNominations.mapNotNull { currentNomination ->
+            val userId = currentNomination.userId.toString()
+            val user = userService.findUserById(userId)
+                ?: userService.forceFindUserById(parsedToken, userId)
+
+            if (user != null) {
+                val nominatedGamemodes = currentNomination.rulesets.map { ruleset -> Gamemode.valueOf(ruleset) }
+                nominatedGamemodes.map { user.osuId to it }
+            } else {
+                null
+            }
+        }.flatten().groupBy({ it.second }, {it.first})
+
+        val newGamemodes = nominators.filterKeys { gamemode ->
+            beatmap.gamemodes.none { beatmapGamemode -> beatmapGamemode.gamemode == gamemode }
+        }.map { (newGamemode, newNominators) ->
+            val preparedNewNominators = newNominators.map { nominatorId ->
+                BeatmapNominator(nominatorId, true)
+            }
+
+            val newGamemodeFirst = preparedNewNominators[0]
+            val newGamemodeSecond = preparedNewNominators.getOrElse(1) {
+                BeatmapNominator(MISSING_USER_ID, false)
+            }
+
+            BeatmapGamemode(
+                newGamemode,
+                listOf(newGamemodeFirst, newGamemodeSecond),
+                false
+            )
+        }
+
+        val updatedBeatmapGamemodes = beatmap.gamemodes.map { beatmapGamemode ->
+            // Only update if something has been nominated, otherwise skip gamemode
+            val newNominators = nominators[beatmapGamemode.gamemode] ?: return@map beatmapGamemode
+            val (currentFirst, currentSecond) = beatmapGamemode.nominators[0] to beatmapGamemode.nominators[1]
+            val newFirst = newNominators[0]
+            val newSecond = newNominators.getOrNull(1)
+
+            val updatedNomiantorPair = if (newSecond != null) {
+                // Both nominators can be updated
+                BeatmapNominator(newFirst, true) to BeatmapNominator(newSecond, true)
+            } else {
+                when (newFirst) {
+                    // First nominator was updated
+                    currentFirst.nominatorId -> {
+                        currentFirst.copy(hasNominated = true) to currentSecond
+                    }
+                    // Second nominator was updated
+                    currentSecond.nominatorId -> {
+                        currentFirst to currentSecond.copy(hasNominated = true)
+                    }
+                    // New nominator, replace first as we don't know
+                    else -> {
+                        BeatmapNominator(newFirst, true) to currentSecond
+                    }
+                }
+            }
+
+            beatmapGamemode.copy(nominators = updatedNomiantorPair.toList())
+        }
+
         val updatedBeatmap = beatmap.copy(
             artist = osuBeatmap.artist,
             title = osuBeatmap.title,
             mapper = osuBeatmap.creator,
             status = newStatus ?: beatmap.status,
+            gamemodes = updatedBeatmapGamemodes + newGamemodes,
             dateUpdated = osuBeatmap.last_updated,
             dateRanked = dateRanked
         )
@@ -741,5 +810,63 @@ class BeatmapService(
             dateUpdated = dateUpdated,
             dateRanked = dateRanked
         )
+    }
+
+    private fun determineNominators(
+        currentFirstNominator: BeatmapNominator,
+        currentSecondNominator: BeatmapNominator,
+        beatmapStatus: BeatmapStatus,
+        userId: String,
+        username: String,
+        databaseBeatmap: Beatmap,
+        updatingGamemode: BeatmapGamemode
+    ): List<BeatmapNominator> {
+        val newNominators = when {
+            currentFirstNominator.nominatorId == userId -> {
+                val newNominator = currentFirstNominator.copy(hasNominated = true)
+                newNominator to currentSecondNominator
+            }
+            currentSecondNominator.nominatorId == userId -> {
+                val newNominator = currentSecondNominator.copy(hasNominated = true)
+                currentFirstNominator to newNominator
+            }
+            currentFirstNominator.nominatorId == MISSING_USER_ID -> {
+                val newNominator = BeatmapNominator(
+                    nominatorId = userId,
+                    hasNominated = true
+                )
+
+                newNominator to currentSecondNominator
+            }
+            currentSecondNominator.nominatorId == MISSING_USER_ID -> {
+                val newNominator = BeatmapNominator(
+                    nominatorId = userId,
+                    hasNominated = true
+                )
+
+                currentFirstNominator to newNominator
+            }
+            !currentFirstNominator.hasNominated -> {
+                val newNominator = BeatmapNominator(
+                    nominatorId = userId,
+                    hasNominated = true
+                )
+
+                newNominator to currentSecondNominator
+            }
+            !currentSecondNominator.hasNominated -> {
+                val newNominator = BeatmapNominator(
+                    nominatorId = userId,
+                    hasNominated = true
+                )
+
+                currentFirstNominator to newNominator
+            }
+            else -> {
+                currentFirstNominator to currentSecondNominator
+            }
+        }
+
+        return newNominators.toList()
     }
 }
