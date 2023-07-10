@@ -232,7 +232,7 @@ class BeatmapService(
             } else {
                 null
             }
-        }.flatten().groupBy({ it.second }, {it.first})
+        }.flatten().groupBy({ it.second }, { it.first })
 
         val newGamemodes = nominators.filterKeys { gamemode ->
             beatmap.gamemodes.none { beatmapGamemode -> beatmapGamemode.gamemode == gamemode }
