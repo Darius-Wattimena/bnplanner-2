@@ -27,9 +27,9 @@ import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.service.UserService.Companion.MISSING_USER_ID
+import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.hasAllNominations
 import nl.greaper.bnplanner.util.hasAnyNomination
-import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import nl.greaper.bnplanner.util.toReadableName
 import org.bson.conversions.Bson
@@ -825,63 +825,5 @@ class BeatmapService(
             dateUpdated = dateUpdated,
             dateRanked = dateRanked
         )
-    }
-
-    private fun determineNominators(
-        currentFirstNominator: BeatmapNominator,
-        currentSecondNominator: BeatmapNominator,
-        beatmapStatus: BeatmapStatus,
-        userId: String,
-        username: String,
-        databaseBeatmap: Beatmap,
-        updatingGamemode: BeatmapGamemode
-    ): List<BeatmapNominator> {
-        val newNominators = when {
-            currentFirstNominator.nominatorId == userId -> {
-                val newNominator = currentFirstNominator.copy(hasNominated = true)
-                newNominator to currentSecondNominator
-            }
-            currentSecondNominator.nominatorId == userId -> {
-                val newNominator = currentSecondNominator.copy(hasNominated = true)
-                currentFirstNominator to newNominator
-            }
-            currentFirstNominator.nominatorId == MISSING_USER_ID -> {
-                val newNominator = BeatmapNominator(
-                    nominatorId = userId,
-                    hasNominated = true
-                )
-
-                newNominator to currentSecondNominator
-            }
-            currentSecondNominator.nominatorId == MISSING_USER_ID -> {
-                val newNominator = BeatmapNominator(
-                    nominatorId = userId,
-                    hasNominated = true
-                )
-
-                currentFirstNominator to newNominator
-            }
-            !currentFirstNominator.hasNominated -> {
-                val newNominator = BeatmapNominator(
-                    nominatorId = userId,
-                    hasNominated = true
-                )
-
-                newNominator to currentSecondNominator
-            }
-            !currentSecondNominator.hasNominated -> {
-                val newNominator = BeatmapNominator(
-                    nominatorId = userId,
-                    hasNominated = true
-                )
-
-                currentFirstNominator to newNominator
-            }
-            else -> {
-                currentFirstNominator to currentSecondNominator
-            }
-        }
-
-        return newNominators.toList()
     }
 }
