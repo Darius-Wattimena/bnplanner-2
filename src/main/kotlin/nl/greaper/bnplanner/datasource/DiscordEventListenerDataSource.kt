@@ -38,6 +38,10 @@ class DiscordEventListenerDataSource(private val database: MongoDatabase) : Base
         }
     }
 
+    fun findByGuildIdAndChannelId(guildId: String, channelId: String): DiscordEventListener? {
+        return listeners.firstOrNull { it.guildId == guildId && it.channelId == channelId }
+    }
+
     fun create(newListener: DiscordEventListener): InsertOneResult {
         addInMemoryListener(newListener)
         return insertOne(newListener)

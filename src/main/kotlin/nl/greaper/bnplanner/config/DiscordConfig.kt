@@ -46,6 +46,7 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
                 log.info { "Handling planner discord message. (guild = ${event.guild?.name}, guildId = ${event.guild?.id})" }
                 when (event.subcommandName) {
                     "register" -> handleListenerRegister(event)
+                    "remove" -> handleListenerRemove(event)
                     "status" -> handleStatus(event)
                 }
             }
@@ -69,7 +70,56 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
             event.reply("TODO status message").queue()
         }
 
+        private fun handleListenerRemove(event: SlashCommandEvent) {
+            event.deferReply().queue()
+
+            val isAdmin = event.member?.permissions?.contains(Permission.ADMINISTRATOR) == true
+
+            if (!isAdmin) {
+                val failedEmbedMessage = EmbedBuilder()
+                    .setDescription("**You need to be an administrator to execute this command**")
+                    .setColor(Color.RED)
+                    .build()
+
+                event.hook.sendMessageEmbeds(failedEmbedMessage).queue()
+                return
+            }
+
+            val guildId = event.guild!!.id
+            val channelId = event.channel.id
+
+            val existingListener = dataSource.findByGuildIdAndChannelId(guildId, channelId)
+            if (existingListener == null) {
+                val failedEmbedMessage = EmbedBuilder()
+                    .setDescription("**ERROR: Could not remove listener!**\nNothing is registered for this channel")
+                    .setColor(Color.RED)
+                    .build()
+
+                event.hook.sendMessageEmbeds(failedEmbedMessage).queue()
+                return
+            }
+
+            val deleteResult = dataSource.remove(existingListener)
+            if (deleteResult.deletedCount == 1L) {
+                val embedMessage = EmbedBuilder()
+                    .setDescription("**Removed listener**")
+                    .setColor(Color.GREEN)
+                    .build()
+
+                event.hook.sendMessageEmbeds(embedMessage).queue()
+            } else {
+                val failedEmbedMessage = EmbedBuilder()
+                    .setDescription("**ERROR: Could not remove listener!**\nPlease try again.\nIf this keeps occurring, contact Greaper")
+                    .setColor(Color.RED)
+                    .build()
+
+                event.hook.sendMessageEmbeds(failedEmbedMessage).queue()
+            }
+        }
+
         private fun handleListenerRegister(event: SlashCommandEvent) {
+            event.deferReply().queue()
+
             val gamemodeValue = event.getOption("gamemode")?.asString
             val gamemode = if (gamemodeValue != null) {
                 Gamemode.valueOf(gamemodeValue)
@@ -79,31 +129,25 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
 
             val isAdmin = event.member?.permissions?.contains(Permission.ADMINISTRATOR) == true
 
-            val replyMessage = if (isAdmin) {
-                StringBuilder("**Registered listener at channel**\n")
-                    .let { builder ->
-                        if (gamemode != null) {
-                            builder.append("Gamemode = `${gamemode.toReadableName()}`")
-                        } else {
-                            builder.append("Gamemode = `all`")
-                        }
-                    }
-                    .toString()
-            } else {
-                "**You need to be an administrator to execute this command**"
-            }
-
-            event.deferReply().queue()
-
             if (!isAdmin) {
                 val failedEmbedMessage = EmbedBuilder()
-                    .setDescription(replyMessage)
+                    .setDescription("**You need to be an administrator to execute this command**")
                     .setColor(Color.RED)
                     .build()
 
                 event.hook.sendMessageEmbeds(failedEmbedMessage).queue()
                 return
             }
+
+            val replyMessage = StringBuilder("**Registered listener at channel**\n")
+                .let { builder ->
+                    if (gamemode != null) {
+                        builder.append("Gamemode = `${gamemode.toReadableName()}`")
+                    } else {
+                        builder.append("Gamemode = `all`")
+                    }
+                }
+                .toString()
 
             val guildId = event.guild!!.id
             val channelId = event.channel.id
@@ -134,7 +178,7 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
                 event.hook.sendMessageEmbeds(embedMessage).queue()
             } else {
                 val failedEmbedMessage = EmbedBuilder()
-                    .setDescription("**ERROR: Could not register listener!**\nPlease try again.\nIf this keeps occurring, contact Greaper#0001")
+                    .setDescription("**ERROR: Could not register listener!**\nPlease try again.\nIf this keeps occurring, contact Greaper")
                     .setColor(Color.RED)
                     .build()
 
@@ -149,14 +193,16 @@ class DiscordConfig(private val dataSource: DiscordEventListenerDataSource) {
             val registerCommand = SubcommandData("register", "Register a listener of bnplanner events")
                 .addOptions(gamemodeOption)
 
+            val removeCommand = SubcommandData("remove", "Remove a listener of bnplanner events")
+
             val commandData = CommandData("planner", "All nomination planner slash commands")
 
             return if (developerServer) {
                 val statusCommand = SubcommandData("status", "Return the current status of the Nomination Planner")
 
-                commandData.addSubcommands(registerCommand, statusCommand)
+                commandData.addSubcommands(registerCommand, removeCommand, statusCommand)
             } else {
-                commandData.addSubcommands(registerCommand)
+                commandData.addSubcommands(registerCommand, removeCommand)
             }
         }
     }
