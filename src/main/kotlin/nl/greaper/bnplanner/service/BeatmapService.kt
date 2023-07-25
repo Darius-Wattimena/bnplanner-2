@@ -27,6 +27,8 @@ import nl.greaper.bnplanner.model.discord.EmbedColor
 import nl.greaper.bnplanner.model.discord.EmbedFooter
 import nl.greaper.bnplanner.model.discord.EmbedThumbnail
 import nl.greaper.bnplanner.service.UserService.Companion.MISSING_USER_ID
+import nl.greaper.bnplanner.util.hasAllNominations
+import nl.greaper.bnplanner.util.hasAnyNomination
 import nl.greaper.bnplanner.util.getEmojiIcon
 import nl.greaper.bnplanner.util.quote
 import nl.greaper.bnplanner.util.toReadableName
@@ -210,7 +212,14 @@ class BeatmapService(
                 if (osuBeatmap.currentNominations.isNotEmpty()) {
                     BeatmapStatus.Nominated
                 } else {
-                    null
+                    if (beatmap.gamemodes.any { it.hasAnyNomination() }) {
+                        BeatmapStatus.Disqualified.takeIf {
+                            beatmap.gamemodes.all { it.hasAllNominations() }
+                        } ?: BeatmapStatus.Reset
+                    } else {
+                        // Don't update, if set on reset we don't want to change this
+                        null
+                    }
                 }
             }
         }
@@ -254,8 +263,14 @@ class BeatmapService(
         }
 
         val updatedBeatmapGamemodes = beatmap.gamemodes.map { beatmapGamemode ->
-            // Only update if something has been nominated, otherwise skip gamemode
-            val newNominators = nominators[beatmapGamemode.gamemode] ?: return@map beatmapGamemode
+            val newNominators = nominators[beatmapGamemode.gamemode]
+
+            // When we don't have any nominators of this gamemode it can either mean gamemode is removed or nominations are reset
+            if (newNominators == null) {
+                val resetNominators = beatmapGamemode.nominators.map { it.copy(hasNominated = false) }
+                return@map beatmapGamemode.copy(nominators = resetNominators)
+            }
+
             val (currentFirst, currentSecond) = beatmapGamemode.nominators[0] to beatmapGamemode.nominators[1]
             val newFirst = newNominators[0]
             val newSecond = newNominators.getOrNull(1)
