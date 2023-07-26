@@ -71,6 +71,7 @@ class BeatmapService(
     }
 
     fun countBeatmaps(
+        search: String?,
         artist: String?,
         title: String?,
         mapper: String?,
@@ -80,10 +81,11 @@ class BeatmapService(
         gamemodes: Set<Gamemode>,
         missingNominator: Set<Gamemode>
     ): Int {
-        return dataSource.count(setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator))
+        return dataSource.count(setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator, search))
     }
 
     fun findBeatmapsIds(
+        search: String?,
         artist: String?,
         title: String?,
         mapper: String?,
@@ -93,7 +95,7 @@ class BeatmapService(
         gamemodes: Set<Gamemode>,
         missingNominator: Set<Gamemode>
     ): Set<String> {
-        val filter = setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator)
+        val filter = setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator, search)
 
         return dataSource.findAll(filter)
             .map { it.osuId }
@@ -102,6 +104,7 @@ class BeatmapService(
 
     fun findBeatmaps(
         osuApiToken: String,
+        search: String?,
         artist: String?,
         title: String?,
         mapper: String?,
@@ -114,7 +117,7 @@ class BeatmapService(
         missingNominator: Set<Gamemode>
     ): List<ExposedBeatmap> {
         return dataSource.findAll(
-            setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator),
+            setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator, search),
             from,
             to
         ).mapNotNull { it.toExposedBeatmap() }
@@ -122,6 +125,7 @@ class BeatmapService(
 
     fun findBeatmaps(
         osuApiToken: String,
+        search: String?,
         artist: String?,
         title: String?,
         mapper: String?,
@@ -134,7 +138,7 @@ class BeatmapService(
         missingNominator: Set<Gamemode>
     ): List<ExposedBeatmap> {
         return dataSource.findAll(
-            setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator),
+            setupFilter(artist, title, mapper, status, nominators, page, gamemodes, missingNominator, search),
             pageNumber,
             pageLimit
         ).mapNotNull { it.toExposedBeatmap() }
@@ -319,13 +323,21 @@ class BeatmapService(
         nominators: Set<String>,
         page: BeatmapPage,
         gamemodes: Set<Gamemode>,
-        missingNominator: Set<Gamemode>
+        missingNominator: Set<Gamemode>,
+        search: String?
     ): Bson {
         val filters = mutableListOf<Bson>()
 
         artist?.let { filters += Beatmap::artist regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
         title?.let { filters += Beatmap::title regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
         mapper?.let { filters += Beatmap::mapper regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
+        search?.let { search ->
+            filters += or(
+                Beatmap::artist regex quote(search).toRegex(RegexOption.IGNORE_CASE),
+                Beatmap::title regex quote(search).toRegex(RegexOption.IGNORE_CASE),
+                Beatmap::mapper regex quote(search).toRegex(RegexOption.IGNORE_CASE)
+            )
+        }
 
         if (nominators.isNotEmpty()) {
             filters += Beatmap::gamemodes / BeatmapGamemode::nominators / BeatmapNominator::nominatorId `in` nominators

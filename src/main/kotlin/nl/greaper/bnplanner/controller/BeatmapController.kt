@@ -40,6 +40,7 @@ class BeatmapController(
     @RolesAllowed(RolePermission.VIEWER)
     fun countBeatmaps(
         @RequestParam page: BeatmapPage,
+        @RequestParam(required = false) search: String?,
         @RequestParam(required = false) artist: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
@@ -49,6 +50,7 @@ class BeatmapController(
         @RequestParam(required = false) missingNominator: Set<Gamemode>?
     ): Int {
         return service.countBeatmaps(
+            search = search,
             artist = artist,
             title = title,
             mapper = mapper,
@@ -67,6 +69,7 @@ class BeatmapController(
         @RequestParam page: BeatmapPage,
         @RequestParam from: Int,
         @RequestParam to: Int,
+        @RequestParam(required = false) search: String?,
         @RequestParam(required = false) artist: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
@@ -77,6 +80,7 @@ class BeatmapController(
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
+            search = search,
             artist = artist,
             title = title,
             mapper = mapper,
@@ -97,6 +101,7 @@ class BeatmapController(
         @RequestParam page: BeatmapPage,
         @RequestParam pageNumber: Int,
         @RequestParam pageLimit: PageLimit,
+        @RequestParam(required = false) search: String?,
         @RequestParam(required = false) artist: String?,
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) mapper: String?,
@@ -107,6 +112,7 @@ class BeatmapController(
     ): List<ExposedBeatmap> {
         return service.findBeatmaps(
             osuApiToken = osuApiToken,
+            search = search,
             artist = artist,
             title = title,
             mapper = mapper,

@@ -26,6 +26,7 @@ class FixService(
 
     fun syncBeatmaps(osuToken: String, page: BeatmapPage, status: Set<BeatmapStatus>): SyncInfo {
         val beatmaps = beatmapService.findBeatmapsIds(
+            search = null,
             artist = null,
             title = null,
             mapper = null,
