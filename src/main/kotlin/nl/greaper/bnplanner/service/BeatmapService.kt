@@ -783,7 +783,7 @@ class BeatmapService(
         )
 
         if (legacyBeatmap._id == 0L) {
-            log.info { "Found a beatmap with Id 0? ${legacyBeatmap.artist} - ${legacyBeatmap.title} by ${legacyBeatmap.mapper}" }
+            log.debug { "Found a beatmap with Id 0? ${legacyBeatmap.artist} - ${legacyBeatmap.title} by ${legacyBeatmap.mapper}" }
         }
 
         // TODO instead of using the legacy data, retrieve the beatmap from the osu api

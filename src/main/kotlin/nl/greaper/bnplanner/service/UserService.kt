@@ -36,7 +36,7 @@ class UserService(
     fun searchUser(username: String?, gamemodes: Set<Gamemode>?, roles: Set<Role>?): List<User> {
         val searchResult = dataSource.searchUser(username, gamemodes ?: emptySet(), roles ?: emptySet())
 
-        log.info { "Found ${searchResult.size} users, taking max $MAX_USERS users." }
+        log.debug { "Found ${searchResult.size} users, taking max $MAX_USERS users." }
 
         return searchResult
             .sortedBy { it.username }
