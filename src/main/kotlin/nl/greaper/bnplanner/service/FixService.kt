@@ -40,6 +40,17 @@ class FixService(
         return syncBeatmaps(osuToken, beatmaps)
     }
 
+    fun syncSingleBeatmap(osuToken: String, beatmapId: String): SyncInfo {
+        val duration = measureTimeMillis {
+            syncBeatmapById(osuToken, beatmapId)
+        }
+
+        return SyncInfo(
+            duration = duration,
+            totalSynced = 1
+        )
+    }
+
     fun syncBeatmaps(osuToken: String, beatmaps: Set<String>): SyncInfo {
         val totalBeatmaps = beatmaps.count()
 
@@ -47,15 +58,9 @@ class FixService(
 
         val duration = measureTimeMillis {
             beatmaps.forEachIndexed { index, beatmapId ->
-                val beatmap = beatmapService.findBeatmap(beatmapId)
-
-                // Remove the users when we already know it
-                if (beatmap != null) {
-                    beatmapService.syncBeatmap(osuToken, beatmap)
-
-                    log.info { "[${index + 1}/$totalBeatmaps] Beatmap ${beatmap.osuId} synced, sleeping." }
-                    Thread.sleep(1_000L + Random.nextInt(0, 1000))
-                }
+                syncBeatmapById(osuToken, beatmapId)
+                log.info { "[${index + 1}/$totalBeatmaps] Beatmap $beatmapId synced, sleeping." }
+                Thread.sleep(1_000L + Random.nextInt(0, 1000))
             }
         }
 
@@ -63,6 +68,14 @@ class FixService(
             duration = duration,
             totalSynced = totalBeatmaps
         )
+    }
+
+    private fun syncBeatmapById(osuToken: String, beatmapId: String) {
+        val beatmap = beatmapService.findBeatmap(beatmapId)
+
+        if (beatmap != null) {
+            beatmapService.syncBeatmap(osuToken, beatmap)
+        }
     }
 
     fun syncAllUsers(osuToken: String): SyncInfo {

@@ -49,6 +49,18 @@ class AdminController(
         }
     }
 
+    @PostMapping("/sync/beatmaps/single")
+    @RolesAllowed(RolePermission.EDITOR)
+    fun syncBeatmapById(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
+        @RequestParam id: Int,
+    ): FixService.SyncInfo {
+        return fixService.syncSingleBeatmap(
+            osuToken = osuApiToken,
+            beatmapId = id.toString()
+        )
+    }
+
     @PostMapping("/sync/beatmaps/graveyard")
     @RolesAllowed(RolePermission.DEVELOPER)
     fun syncAllGraveyardBeatmaps(
