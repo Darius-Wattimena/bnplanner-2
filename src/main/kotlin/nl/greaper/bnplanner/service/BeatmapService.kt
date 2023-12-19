@@ -275,13 +275,19 @@ class BeatmapService(
             )
         }
 
-        val updatedBeatmapGamemodes = beatmap.gamemodes.map { beatmapGamemode ->
+        val updatedBeatmapGamemodes = beatmap.gamemodes.mapNotNull { beatmapGamemode ->
             val newNominators = nominators[beatmapGamemode.gamemode]
 
             // When we don't have any nominators of this gamemode it can either mean gamemode is removed or nominations are reset
             if (newNominators == null) {
                 val resetNominators = beatmapGamemode.nominators.map { it.copy(hasNominated = false) }
-                return@map beatmapGamemode.copy(nominators = resetNominators)
+
+                // When already ranked we can assume this gamemode got removed
+                if (newStatus == BeatmapStatus.Ranked) {
+                    return@mapNotNull null
+                }
+
+                return@mapNotNull beatmapGamemode.copy(nominators = resetNominators)
             }
 
             val (currentFirst, currentSecond) = beatmapGamemode.nominators[0] to beatmapGamemode.nominators[1]
