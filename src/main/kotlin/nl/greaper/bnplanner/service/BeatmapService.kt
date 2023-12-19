@@ -337,7 +337,7 @@ class BeatmapService(
         status: Set<BeatmapStatus> = emptySet(),
         nominators: Set<String> = emptySet(),
         page: BeatmapPage?,
-        gamemodes: Set<Gamemode>  = emptySet(),
+        gamemodes: Set<Gamemode> = emptySet(),
         missingNominator: Set<Gamemode> = emptySet(),
         search: String? = null
     ): Bson {

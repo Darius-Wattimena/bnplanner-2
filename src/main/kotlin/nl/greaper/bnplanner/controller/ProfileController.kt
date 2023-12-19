@@ -1,7 +1,6 @@
 package nl.greaper.bnplanner.controller
 
 import nl.greaper.bnplanner.auth.RolePermission
-import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.profile.ProfileStatisticsPairInfo
 import nl.greaper.bnplanner.service.ProfileService
 import org.springframework.web.bind.annotation.GetMapping
