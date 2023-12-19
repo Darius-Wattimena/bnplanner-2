@@ -57,6 +57,15 @@ class BeatmapService(
         return dataSource.findById(id)
     }
 
+    fun findBeatmapsByNominator(nominatorId: String): List<Beatmap> {
+        val filter = setupFilter(
+            nominators = setOf(nominatorId),
+            page = null
+        )
+
+        return dataSource.findAll(filter)
+    }
+
     fun findExposedBeatmap(osuApiToken: String, id: String): ExposedBeatmap? {
         return dataSource.findById(id)?.toExposedBeatmap()
     }
@@ -316,22 +325,22 @@ class BeatmapService(
     }
 
     private fun setupFilter(
-        artist: String?,
-        title: String?,
-        mapper: String?,
-        status: Set<BeatmapStatus>,
-        nominators: Set<String>,
-        page: BeatmapPage,
-        gamemodes: Set<Gamemode>,
-        missingNominator: Set<Gamemode>,
-        search: String?
+        artist: String? = null,
+        title: String? = null,
+        mapper: String? = null,
+        status: Set<BeatmapStatus> = emptySet(),
+        nominators: Set<String> = emptySet(),
+        page: BeatmapPage?,
+        gamemodes: Set<Gamemode>  = emptySet(),
+        missingNominator: Set<Gamemode> = emptySet(),
+        search: String? = null
     ): Bson {
         val filters = mutableListOf<Bson>()
 
         artist?.let { filters += Beatmap::artist regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
         title?.let { filters += Beatmap::title regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
         mapper?.let { filters += Beatmap::mapper regex quote(it).toRegex(RegexOption.IGNORE_CASE) }
-        search?.let { search ->
+        search?.let {
             filters += or(
                 Beatmap::artist regex quote(search).toRegex(RegexOption.IGNORE_CASE),
                 Beatmap::title regex quote(search).toRegex(RegexOption.IGNORE_CASE),
@@ -375,23 +384,26 @@ class BeatmapService(
                         null
                     } else it
                 }
+                null -> null
             }
         }
 
-        filters += if (parsedStatus.isNotEmpty()) {
-            or(
-                status.map {
-                    "{ status : ${it.toPriorityStatus()} }  ".bson
-                }
-            )
-        } else {
-            when (page) {
-                BeatmapPage.PENDING -> and(
-                    "{ status : { \$ne : ${BeatmapStatus.Ranked.toPriorityStatus()} } }".bson,
-                    "{ status : { \$ne : ${BeatmapStatus.Graved.toPriorityStatus()} } }".bson,
+        if (page != null) {
+            filters += if (parsedStatus.isNotEmpty()) {
+                or(
+                    status.map {
+                        "{ status : ${it.toPriorityStatus()} }".bson
+                    }
                 )
-                BeatmapPage.RANKED -> "{ status : ${BeatmapStatus.Ranked.toPriorityStatus()} }".bson
-                BeatmapPage.GRAVEYARD -> "{ status : ${BeatmapStatus.Graved.toPriorityStatus()} }".bson
+            } else {
+                when (page) {
+                    BeatmapPage.PENDING -> and(
+                        "{ status : { \$ne : ${BeatmapStatus.Ranked.toPriorityStatus()} } }".bson,
+                        "{ status : { \$ne : ${BeatmapStatus.Graved.toPriorityStatus()} } }".bson,
+                    )
+                    BeatmapPage.RANKED -> "{ status : ${BeatmapStatus.Ranked.toPriorityStatus()} }".bson
+                    BeatmapPage.GRAVEYARD -> "{ status : ${BeatmapStatus.Graved.toPriorityStatus()} }".bson
+                }
             }
         }
 
