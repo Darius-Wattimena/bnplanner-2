@@ -41,9 +41,11 @@ class FixService(
     }
 
     fun syncSingleBeatmap(osuToken: String, beatmapId: String): SyncInfo {
+        log.info { "Syncing beatmap (id = $beatmapId)" }
         val duration = measureTimeMillis {
             syncBeatmapById(osuToken, beatmapId)
         }
+        log.info { "Synced beatmap in $duration ms (id = $beatmapId)" }
 
         return SyncInfo(
             duration = duration,
@@ -54,7 +56,7 @@ class FixService(
     fun syncBeatmaps(osuToken: String, beatmaps: Set<String>): SyncInfo {
         val totalBeatmaps = beatmaps.count()
 
-        log.info { "Checking $totalBeatmaps beatmaps." }
+        log.info { "Syncing $totalBeatmaps beatmaps." }
 
         val duration = measureTimeMillis {
             beatmaps.forEachIndexed { index, beatmapId ->
