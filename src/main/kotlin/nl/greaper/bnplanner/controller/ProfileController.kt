@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.controller
 
+import jakarta.annotation.security.RolesAllowed
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.profile.ProfileStatisticsPairInfo
 import nl.greaper.bnplanner.service.ProfileService
@@ -7,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.security.RolesAllowed
 
 @RestController
 @RequestMapping("/v2/profile")

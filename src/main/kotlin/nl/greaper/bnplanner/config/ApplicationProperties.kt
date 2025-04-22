@@ -1,9 +1,7 @@
 package nl.greaper.bnplanner.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
-@ConstructorBinding
 @ConfigurationProperties("mongodb")
 data class MongoProperties(
     val db: String,
@@ -14,7 +12,6 @@ data class MongoProperties(
     val port: Int
 )
 
-@ConstructorBinding
 @ConfigurationProperties("osu")
 data class OsuProperties(
     val clientId: String,
@@ -22,7 +19,6 @@ data class OsuProperties(
     val redirectUri: String
 )
 
-@ConstructorBinding
 @ConfigurationProperties("cors")
 data class CorsProperties(
     val uris: String,
@@ -30,7 +26,6 @@ data class CorsProperties(
     val headers: String
 )
 
-@ConstructorBinding
 @ConfigurationProperties("discord")
 data class DiscordProperties(
     val token: String,
@@ -38,7 +33,6 @@ data class DiscordProperties(
     val webhookPublic: String
 )
 
-@ConstructorBinding
 @ConfigurationProperties("aiess")
 data class AiessProperties(
     val token: String

@@ -16,7 +16,7 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
     final val usersByGamemode: MutableMap<Gamemode, Set<String>> = mutableMapOf()
 
     init {
-        Gamemode.values().forEach { gamemode ->
+        Gamemode.entries.forEach { gamemode ->
             usersByGamemode[gamemode] = emptySet()
         }
 
@@ -46,7 +46,7 @@ class UserDataSource(private val database: MongoDatabase) : BaseDataSource<User>
 
         val userGamemodes = user.gamemodes.map { it.gamemode }
 
-        Gamemode.values().forEach { gamemode ->
+        Gamemode.entries.forEach { gamemode ->
             val gamemodeUsers = usersByGamemode[gamemode]?.toMutableSet() ?: mutableSetOf()
             if (gamemode in userGamemodes) {
                 // Add the user to the gamemode

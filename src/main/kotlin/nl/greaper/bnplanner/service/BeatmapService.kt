@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.ADDED_NOMINATOR_ICON
 import nl.greaper.bnplanner.CHANGE_BEATMAP_NOTE_ICON
 import nl.greaper.bnplanner.CREATED_BEATMAP_ICON

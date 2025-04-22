@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.LOGIN_FAILED_ICON
 import nl.greaper.bnplanner.LOGIN_ICON
 import nl.greaper.bnplanner.client.DiscordClient

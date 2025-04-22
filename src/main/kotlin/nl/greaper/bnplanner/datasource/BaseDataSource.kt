@@ -9,7 +9,7 @@ import org.litote.kmongo.deleteOneById
 import org.litote.kmongo.findOne
 import org.litote.kmongo.findOneById
 
-abstract class BaseDataSource<T> {
+abstract class BaseDataSource<T: Any> {
     protected val collection by lazy { initCollection() }
 
     abstract fun initCollection(): MongoCollection<T>

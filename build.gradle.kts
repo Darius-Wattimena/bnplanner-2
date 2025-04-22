@@ -1,19 +1,19 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.6.3"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
+    id("org.springframework.boot") version "3.4.4"
+    id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
     id("fi.evident.beanstalk") version "0.3.3"
     war
-    kotlin("jvm") version "1.6.10"
-    kotlin("plugin.spring") version "1.6.10"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.spring") version "2.1.20"
 }
 
 group = "nl.greaper"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
-java.targetCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -34,12 +34,12 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     // Mongo
-    implementation("org.litote.kmongo:kmongo:4.5.0")
+    implementation("org.litote.kmongo:kmongo:5.2.0")
 
     // Logging
-    implementation("io.github.microutils:kotlin-logging:2.1.21")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("org.codehaus.janino:janino:3.1.6")
+    implementation("io.github.oshai:kotlin-logging:7.0.7")
+    implementation("ch.qos.logback:logback-classic")
+    implementation("org.codehaus.janino:janino")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
@@ -60,7 +60,7 @@ val compileKotlin: KotlinCompile by tasks
 
 compileKotlin.kotlinOptions {
     freeCompilerArgs = listOf("-Xjsr305=strict")
-    jvmTarget = "11"
+    jvmTarget = "17"
 }
 
 tasks {

@@ -1,7 +1,7 @@
 package nl.greaper.bnplanner.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.CREATED_BEATMAP_ICON
 import nl.greaper.bnplanner.DISQUALIFY_STATUS_ICON
 import nl.greaper.bnplanner.GRAVED_STATUS_ICON

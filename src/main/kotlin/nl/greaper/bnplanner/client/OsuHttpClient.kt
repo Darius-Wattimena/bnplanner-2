@@ -2,7 +2,7 @@ package nl.greaper.bnplanner.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.config.OsuProperties
 import nl.greaper.bnplanner.model.osu.AuthToken
 import nl.greaper.bnplanner.model.osu.BeatmapSet
@@ -56,6 +56,8 @@ class OsuHttpClient(
 
         runCatching {
             return authRest.postForEntity(tokenUri, request)
+        }.onFailure { error ->
+            log.error(error) { "Could not get auth token" }
         }
 
         return null
@@ -86,6 +88,16 @@ class OsuHttpClient(
 
     fun get(uri: String, osuApiToken: String, includeBearer: Boolean): ResponseEntity<String> {
         return request(uri, HttpMethod.GET, osuApiToken, includeBearer = includeBearer)
+    }
+
+    fun findBeatmapsByMapper(mapper: Int, osuApiToken: String, includeBearer: Boolean = true): List<BeatmapSet> {
+        return try {
+            val response = get("/users/$mapper/beatmapsets/ranked", osuApiToken, includeBearer)
+            return response.body?.let { objectMapper.readValue<List<BeatmapSet>>(it) } ?: emptyList()
+        } catch (ex: Exception) {
+            log.error(ex) { "Unable to get a beatmap from the osu api" }
+            emptyList()
+        }
     }
 
     fun findBeatmapWithId(osuApiToken: String, osuId: String, includeBearer: Boolean = true): BeatmapSet? {

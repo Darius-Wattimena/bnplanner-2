@@ -1,5 +1,8 @@
 package nl.greaper.bnplanner.auth
 
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import nl.greaper.bnplanner.config.AiessProperties
 import nl.greaper.bnplanner.service.UserService
 import nl.greaper.bnplanner.util.getAiessRole
@@ -12,9 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import javax.servlet.FilterChain
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 @Component
 class JwtTokenFilter(

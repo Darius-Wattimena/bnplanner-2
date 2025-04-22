@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.controller
 
+import jakarta.annotation.security.RolesAllowed
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.PageLimit
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.security.RolesAllowed
 
 @RestController
 @RequestMapping("/v2/beatmap")

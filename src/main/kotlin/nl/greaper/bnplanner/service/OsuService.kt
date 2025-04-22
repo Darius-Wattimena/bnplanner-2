@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.client.OsuHttpClient
 import nl.greaper.bnplanner.datasource.OsuTokenDataSource
 import nl.greaper.bnplanner.model.UserContext

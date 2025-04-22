@@ -1,5 +1,6 @@
 package nl.greaper.bnplanner.controller
 
+import jakarta.annotation.security.RolesAllowed
 import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.aiess.AiessBeatmapEvent
 import nl.greaper.bnplanner.model.aiess.AiessResponse
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import javax.annotation.security.RolesAllowed
 
 @RestController
 @RequestMapping("/v2/aiess")

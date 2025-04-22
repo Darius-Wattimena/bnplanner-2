@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.client
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import nl.greaper.bnplanner.datasource.DiscordEventListenerDataSource

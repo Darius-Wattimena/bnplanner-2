@@ -1,6 +1,6 @@
 package nl.greaper.bnplanner.service
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nl.greaper.bnplanner.datasource.BeatmapDataSource
 import nl.greaper.bnplanner.model.beatmap.BeatmapPage
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
