@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit
 class OsuService(
     private val client: OsuHttpClient,
     private val userService: UserService,
-    private val osuTokenDataSource: OsuTokenDataSource
+    private val osuTokenDataSource: OsuTokenDataSource,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -39,7 +39,10 @@ class OsuService(
         return body
     }
 
-    fun getValidUpdaterToken(token: String, refreshToken: String): String? {
+    fun getValidUpdaterToken(
+        token: String,
+        refreshToken: String,
+    ): String? {
         val claims = parseJwtToken(token)
         val exp = (claims?.get("exp") as? Double)?.toLong()
 
@@ -77,8 +80,11 @@ class OsuService(
     }
 
     fun getUserContextByToken(token: AuthToken): UserContext? {
-        val tokenExpires = Instant.now().plusSeconds(token.expires_in.toLong())
-            .minus(5, ChronoUnit.MINUTES)
+        val tokenExpires =
+            Instant
+                .now()
+                .plusSeconds(token.expires_in.toLong())
+                .minus(5, ChronoUnit.MINUTES)
 
         val claims = parseJwtToken(token.access_token) ?: return null
 

@@ -17,24 +17,28 @@ class DatabaseConfig {
 
     @Bean
     fun mongoClient(config: MongoProperties): MongoClient {
-        val uri = if (config.username.isNotBlank() && config.password.isNotBlank()) {
-            val encodedUsername = URLEncoder.encode(config.username, encoding)
-            val encodedPassword = URLEncoder.encode(config.password, encoding)
-            val encodedAuthDb = URLEncoder.encode(config.authDb, encoding)
-            "mongodb+srv://$encodedUsername:$encodedPassword@${config.host}/$encodedAuthDb"
-        } else {
-            "mongodb://${config.host}:${config.port}"
-        }
+        val uri =
+            if (config.username.isNotBlank() && config.password.isNotBlank()) {
+                val encodedUsername = URLEncoder.encode(config.username, encoding)
+                val encodedPassword = URLEncoder.encode(config.password, encoding)
+                val encodedAuthDb = URLEncoder.encode(config.authDb, encoding)
+                "mongodb+srv://$encodedUsername:$encodedPassword@${config.host}/$encodedAuthDb"
+            } else {
+                "mongodb://${config.host}:${config.port}"
+            }
 
-        val settings = MongoClientSettings.builder()
-            .codecRegistry(ClassMappingType.codecRegistry(getDefaultCodecRegistry()))
-            .applyConnectionString(ConnectionString(uri))
-            .build()
+        val settings =
+            MongoClientSettings
+                .builder()
+                .codecRegistry(ClassMappingType.codecRegistry(getDefaultCodecRegistry()))
+                .applyConnectionString(ConnectionString(uri))
+                .build()
         return MongoClients.create(settings)
     }
 
     @Bean
-    fun mongoDatabase(config: MongoProperties, client: MongoClient): MongoDatabase {
-        return client.getDatabase(config.db)
-    }
+    fun mongoDatabase(
+        config: MongoProperties,
+        client: MongoClient,
+    ): MongoDatabase = client.getDatabase(config.db)
 }

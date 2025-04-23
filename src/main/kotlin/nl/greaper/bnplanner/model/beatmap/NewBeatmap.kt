@@ -4,5 +4,5 @@ import nl.greaper.bnplanner.model.Gamemode
 
 data class NewBeatmap(
     val osuId: String,
-    val gamemodes: List<Gamemode>
+    val gamemodes: List<Gamemode>,
 )

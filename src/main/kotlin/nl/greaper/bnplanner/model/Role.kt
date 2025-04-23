@@ -6,25 +6,24 @@ enum class Role {
     Mapper,
     Nominator,
     Probation,
-    NominationAssessment;
+    NominationAssessment,
+    ;
 
     companion object {
-        fun fromOsuId(osuId: String): Role {
-            return when (osuId) {
+        fun fromOsuId(osuId: String): Role =
+            when (osuId) {
                 MeGroup.NAT -> NominationAssessment
                 MeGroup.BN -> Nominator
                 MeGroup.PBN -> Probation
                 else -> Mapper
             }
-        }
     }
 }
 
-fun Role.toReadableName(): String {
-    return when (this) {
+fun Role.toReadableName(): String =
+    when (this) {
         Role.Mapper -> "Mapper"
         Role.Nominator -> "Beatmap Nominators"
         Role.Probation -> "Beatmap Nominators (Probationary)"
         Role.NominationAssessment -> "Nomination Assessment Team"
     }
-}

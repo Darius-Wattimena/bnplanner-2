@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
+    id("org.jlleitschuh.gradle.ktlint") version "12.2.0"
     id("fi.evident.beanstalk") version "0.3.3"
     war
     kotlin("jvm") version "2.1.20"
@@ -18,6 +18,10 @@ java.targetCompatibility = JavaVersion.VERSION_17
 repositories {
     mavenCentral()
     maven("https://m2.dv8tion.net/releases")
+}
+
+ktlint {
+    version.set("1.5.0")
 }
 
 dependencies {

@@ -17,5 +17,5 @@ data class LegacyBeatmap(
     val dateRanked: Long = 0,
     val nominatedByBNOne: Boolean = false,
     val nominatedByBNTwo: Boolean = false,
-    val unfinished: Boolean = false
+    val unfinished: Boolean = false,
 )

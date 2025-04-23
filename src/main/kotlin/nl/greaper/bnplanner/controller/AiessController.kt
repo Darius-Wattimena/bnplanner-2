@@ -16,15 +16,18 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v2/aiess")
 class AiessController(
-    private val service: AiessService
+    private val service: AiessService,
 ) {
     @PostMapping("/event/beatmap")
     @RolesAllowed(RolePermission.BOT, RolePermission.DEVELOPER)
-    fun beatmapEvent(@RequestBody body: AiessBeatmapEvent): ResponseEntity<AiessResponse> {
+    fun beatmapEvent(
+        @RequestBody body: AiessBeatmapEvent,
+    ): ResponseEntity<AiessResponse> {
         val result = service.processAiessBeatmapEvent(body)
 
         return if (result.error != null) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(result)
         } else {
             ResponseEntity.ok(result)
@@ -33,11 +36,14 @@ class AiessController(
 
     @PostMapping("/event/user")
     @RolesAllowed(RolePermission.BOT, RolePermission.DEVELOPER)
-    fun userEvent(@RequestBody body: AiessUserEvent): ResponseEntity<AiessResponse> {
+    fun userEvent(
+        @RequestBody body: AiessUserEvent,
+    ): ResponseEntity<AiessResponse> {
         val result = service.processAiessUserEvent(body)
 
         return if (result.error != null) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(result)
         } else {
             ResponseEntity.ok(result)

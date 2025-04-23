@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v2/auth")
-class AuthController(private val authService: AuthService) {
-
+class AuthController(
+    private val authService: AuthService,
+) {
     @PostMapping
-    fun login(@RequestBody token: String): ResponseEntity<UserContext?> {
+    fun login(
+        @RequestBody token: String,
+    ): ResponseEntity<UserContext?> {
         runCatching {
             val result = authService.login(token)
 
@@ -26,7 +29,9 @@ class AuthController(private val authService: AuthService) {
     }
 
     @PostMapping("/refresh")
-    fun refreshLogin(@RequestBody refreshToken: String): ResponseEntity<UserContext?> {
+    fun refreshLogin(
+        @RequestBody refreshToken: String,
+    ): ResponseEntity<UserContext?> {
         runCatching {
             val result = authService.refresh(refreshToken)
 

@@ -18,35 +18,32 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val tokenFilter: JwtTokenFilter
+    private val tokenFilter: JwtTokenFilter,
 ) {
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        return http.cors {  }
+    fun filterChain(http: HttpSecurity): SecurityFilterChain =
+        http
+            .cors { }
             .csrf { configurer -> configurer.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .exceptionHandling { configurer ->
                 configurer.authenticationEntryPoint { _: HttpServletRequest?, response: HttpServletResponse, ex: AuthenticationException ->
                     response.sendError(
                         HttpServletResponse.SC_UNAUTHORIZED,
-                        ex.message
+                        ex.message,
                     )
                 }
-            }
-            .authorizeHttpRequests { registry ->
-                registry.requestMatchers("/v2/auth", "/v2/auth/refresh", "/actuator/health")
+            }.authorizeHttpRequests { registry ->
+                registry
+                    .requestMatchers("/v2/auth", "/v2/auth/refresh", "/actuator/health")
                     .permitAll()
                     .anyRequest()
                     .authenticated()
-            }
-            .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
+            }.addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
-    }
 
     @Bean
-    fun corsConfigurationSource(
-        cors: CorsProperties
-    ): CorsConfigurationSource {
+    fun corsConfigurationSource(cors: CorsProperties): CorsConfigurationSource {
         val configuration = CorsConfiguration()
         configuration.allowedOrigins = cors.uris.split(",")
         configuration.allowedMethods = cors.methods.split(",")

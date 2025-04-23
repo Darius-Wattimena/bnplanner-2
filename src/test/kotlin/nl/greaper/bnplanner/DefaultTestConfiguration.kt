@@ -40,7 +40,7 @@ class DefaultTestConfiguration {
             beatmapId: String,
             editor: User?,
             confidential: Boolean,
-            gamemodes: List<Gamemode>
+            gamemodes: List<Gamemode>,
         ) {
         }
 
@@ -50,29 +50,30 @@ class DefaultTestConfiguration {
             thumbnail: EmbedThumbnail,
             footer: EmbedFooter,
             confidential: Boolean,
-            gamemodes: List<Gamemode>
+            gamemodes: List<Gamemode>,
         ) {
         }
     }
 
-    private fun <T> getMockIterable() = mock<FindIterable<T>> {
-        val mockIterator = mock<MongoCursor<T>> {
-            on { hasNext() } doReturn false
+    private fun <T> getMockIterable() =
+        mock<FindIterable<T>> {
+            val mockIterator =
+                mock<MongoCursor<T>> {
+                    on { hasNext() } doReturn false
+                }
+            on { iterator() } doReturn mockIterator
         }
-        on { iterator() } doReturn mockIterator
-    }
 
-    fun getMockMongoDB(): MongoDatabase {
-        return mock {
-            val mockCollection = mock<MongoCollection<Any>> {
-                val iterable = getMockIterable<Any>()
-                on { createIndex(any<Bson>(), any()) } doReturn ""
-                on { find() } doReturn iterable
-                on { find(any<Bson>()) } doReturn iterable
-            }
+    fun getMockMongoDB(): MongoDatabase =
+        mock {
+            val mockCollection =
+                mock<MongoCollection<Any>> {
+                    val iterable = getMockIterable<Any>()
+                    on { createIndex(any<Bson>(), any()) } doReturn ""
+                    on { find() } doReturn iterable
+                    on { find(any<Bson>()) } doReturn iterable
+                }
             on { getCollection(any(), any<Class<Any>>()) } doReturn mockCollection
-            val iterable = getMockIterable<String>()
-            on { listCollectionNames() } doReturn iterable
+            on { listCollectionNames() } doReturn mock()
         }
-    }
 }

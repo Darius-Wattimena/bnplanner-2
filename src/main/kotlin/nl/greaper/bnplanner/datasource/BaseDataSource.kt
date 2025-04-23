@@ -9,24 +9,35 @@ import org.litote.kmongo.deleteOneById
 import org.litote.kmongo.findOne
 import org.litote.kmongo.findOneById
 
-abstract class BaseDataSource<T: Any> {
+abstract class BaseDataSource<T : Any> {
     protected val collection by lazy { initCollection() }
 
     abstract fun initCollection(): MongoCollection<T>
 
     fun list(): List<T> = collection.find().toList()
+
     fun findFirst() = collection.findOne()
+
     fun findById(id: String): T? = collection.findOneById(id)
+
     fun deleteById(id: String) = collection.deleteOneById(id)
+
     fun deleteMany() = collection.deleteMany(EMPTY_BSON)
+
     fun count(filter: Bson): Int = collection.countDocuments(filter).toInt()
+
     fun insertOne(value: T) = collection.insertOne(value)
+
     fun insertMany(values: List<T>): List<BulkWriteResult> = collection.insertManyBatched(values)
 
-    private fun MongoCollection<T>.insertManyBatched(list: List<T>, batchSize: Int = 100): List<BulkWriteResult> {
+    private fun MongoCollection<T>.insertManyBatched(
+        list: List<T>,
+        batchSize: Int = 100,
+    ): List<BulkWriteResult> {
         val preparedList = list.map { InsertOneModel<T>(it) }
 
-        return preparedList.windowed(batchSize, batchSize, true)
+        return preparedList
+            .windowed(batchSize, batchSize, true)
             .map { bulk -> bulkWrite(bulk) }
     }
 }

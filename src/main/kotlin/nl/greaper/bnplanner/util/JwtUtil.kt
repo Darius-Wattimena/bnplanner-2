@@ -5,11 +5,12 @@ import io.jsonwebtoken.Jwts
 
 fun parseJwtToken(token: String): Claims? {
     return try {
-        val parsedToken = if (token.startsWith("Bearer ")) {
-            token.removePrefix("Bearer ")
-        } else {
-            token
-        }
+        val parsedToken =
+            if (token.startsWith("Bearer ")) {
+                token.removePrefix("Bearer ")
+            } else {
+                token
+            }
 
         val i = parsedToken.lastIndexOf('.')
         val withoutSignature = parsedToken.substring(0, i + 1)

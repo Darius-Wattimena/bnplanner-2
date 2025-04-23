@@ -13,28 +13,30 @@ import org.litote.kmongo.sort
 import org.springframework.stereotype.Component
 
 @Component
-class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Beatmap>() {
-    override fun initCollection(): MongoCollection<Beatmap> {
-        return database.getCollection<Beatmap>("beatmaps").also {
+class BeatmapDataSource(
+    private val database: MongoDatabase,
+) : BaseDataSource<Beatmap>() {
+    override fun initCollection(): MongoCollection<Beatmap> =
+        database.getCollection<Beatmap>("beatmaps").also {
             it.ensureIndex(
                 Beatmap::status,
                 Beatmap::dateUpdated,
                 Beatmap::artist,
-                Beatmap::title
+                Beatmap::title,
             )
         }
-    }
 
     fun findAll(
         filter: Bson,
         pageNumber: Int,
         pageLimit: PageLimit,
     ): List<Beatmap> {
-        val numberLimit = when (pageLimit) {
-            PageLimit.TEN -> 10
-            PageLimit.TWENTY -> 20
-            PageLimit.FIFTY -> 50
-        }
+        val numberLimit =
+            when (pageLimit) {
+                PageLimit.TEN -> 10
+                PageLimit.TWENTY -> 20
+                PageLimit.FIFTY -> 50
+            }
 
         val findQuery = collection.find(filter)
         findQuery.sort("{ status: 1, dateUpdated: -1 }")
@@ -62,9 +64,7 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
         return findQuery.toList()
     }
 
-    fun findAll(
-        filter: Bson,
-    ): List<Beatmap> {
+    fun findAll(filter: Bson): List<Beatmap> {
         val findQuery = collection.find(filter)
 
         return findQuery.toList()
@@ -74,7 +74,7 @@ class BeatmapDataSource(private val database: MongoDatabase) : BaseDataSource<Be
         collection.replaceOneById(
             updatedBeatmap.osuId,
             updatedBeatmap,
-            ReplaceOptions().upsert(true)
+            ReplaceOptions().upsert(true),
         )
     }
 }

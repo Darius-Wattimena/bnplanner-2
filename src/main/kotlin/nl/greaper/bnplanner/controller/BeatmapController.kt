@@ -25,16 +25,14 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v2/beatmap")
 class BeatmapController(
-    val service: BeatmapService
+    val service: BeatmapService,
 ) {
     @GetMapping("/{id}")
     @RolesAllowed(RolePermission.VIEWER)
     fun findBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @PathVariable("id") id: String
-    ): ExposedBeatmap? {
-        return service.findExposedBeatmap(osuApiToken, id)
-    }
+        @PathVariable("id") id: String,
+    ): ExposedBeatmap? = service.findExposedBeatmap(osuApiToken, id)
 
     @GetMapping("/count")
     @RolesAllowed(RolePermission.VIEWER)
@@ -47,9 +45,9 @@ class BeatmapController(
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
         @RequestParam(required = false) gamemodes: Set<Gamemode>?,
-        @RequestParam(required = false) missingNominator: Set<Gamemode>?
-    ): Int {
-        return service.countBeatmaps(
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?,
+    ): Int =
+        service.countBeatmaps(
             search = search,
             artist = artist,
             title = title,
@@ -58,9 +56,8 @@ class BeatmapController(
             nominators = nominators ?: emptySet(),
             page = page,
             gamemodes = gamemodes ?: emptySet(),
-            missingNominator = missingNominator ?: emptySet()
+            missingNominator = missingNominator ?: emptySet(),
         )
-    }
 
     @GetMapping("/find")
     @RolesAllowed(RolePermission.VIEWER)
@@ -76,9 +73,9 @@ class BeatmapController(
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
         @RequestParam(required = false) gamemodes: Set<Gamemode>?,
-        @RequestParam(required = false) missingNominator: Set<Gamemode>?
-    ): List<ExposedBeatmap> {
-        return service.findBeatmaps(
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?,
+    ): List<ExposedBeatmap> =
+        service.findBeatmaps(
             osuApiToken = osuApiToken,
             search = search,
             artist = artist,
@@ -90,9 +87,8 @@ class BeatmapController(
             from = from,
             to = to,
             gamemodes = gamemodes ?: emptySet(),
-            missingNominator = missingNominator ?: emptySet()
+            missingNominator = missingNominator ?: emptySet(),
         )
-    }
 
     @GetMapping("/find/table")
     @RolesAllowed(RolePermission.VIEWER)
@@ -108,9 +104,9 @@ class BeatmapController(
         @RequestParam(required = false) status: Set<BeatmapStatus>?,
         @RequestParam(required = false) nominators: Set<String>?,
         @RequestParam(required = false) gamemodes: Set<Gamemode>?,
-        @RequestParam(required = false) missingNominator: Set<Gamemode>?
-    ): List<ExposedBeatmap> {
-        return service.findBeatmaps(
+        @RequestParam(required = false) missingNominator: Set<Gamemode>?,
+    ): List<ExposedBeatmap> =
+        service.findBeatmaps(
             osuApiToken = osuApiToken,
             search = search,
             artist = artist,
@@ -122,28 +118,23 @@ class BeatmapController(
             pageNumber = pageNumber,
             pageLimit = pageLimit,
             gamemodes = gamemodes ?: emptySet(),
-            missingNominator = missingNominator ?: emptySet()
+            missingNominator = missingNominator ?: emptySet(),
         )
-    }
 
     @PostMapping("/add")
     @RolesAllowed(RolePermission.EDITOR)
     fun addBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @RequestBody newBeatmap: NewBeatmap
-    ): ExposedBeatmap? {
-        return service.addBeatmap(osuApiToken, newBeatmap)
-    }
+        @RequestBody newBeatmap: NewBeatmap,
+    ): ExposedBeatmap? = service.addBeatmap(osuApiToken, newBeatmap)
 
     @PatchMapping("/{id}/nominators")
     @RolesAllowed(RolePermission.EDITOR)
     fun updateNominators(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @PathVariable("id") id: String,
-        @RequestBody updatedBeatmapGamemodes: List<BeatmapGamemode>
-    ): ExposedBeatmap? {
-        return service.updateBeatmapNominators(osuApiToken, id, updatedBeatmapGamemodes)
-    }
+        @RequestBody updatedBeatmapGamemodes: List<BeatmapGamemode>,
+    ): ExposedBeatmap? = service.updateBeatmapNominators(osuApiToken, id, updatedBeatmapGamemodes)
 
     @PatchMapping("/{id}/{mode}/nominator")
     @RolesAllowed(RolePermission.EDITOR)
@@ -152,10 +143,8 @@ class BeatmapController(
         @RequestParam old: String,
         @RequestParam new: String,
         @PathVariable("id") id: String,
-        @PathVariable("mode") mode: Gamemode
-    ): ExposedBeatmap? {
-        return service.updateBeatmapNominator(osuApiToken, id, mode, old, new)
-    }
+        @PathVariable("mode") mode: Gamemode,
+    ): ExposedBeatmap? = service.updateBeatmapNominator(osuApiToken, id, mode, old, new)
 
     @PatchMapping("/{id}/status")
     @RolesAllowed(RolePermission.ADMIN)
@@ -163,9 +152,7 @@ class BeatmapController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestParam new: BeatmapStatus,
         @PathVariable("id") id: String,
-    ): Boolean {
-        return service.updateBeatmapStatus(osuApiToken, id, new)
-    }
+    ): Boolean = service.updateBeatmapStatus(osuApiToken, id, new)
 
     @PatchMapping("/{id}/note", consumes = ["text/plain"])
     @RolesAllowed(RolePermission.EDITOR)
@@ -173,15 +160,13 @@ class BeatmapController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
         @RequestBody body: String,
         @PathVariable("id") id: String,
-    ): Boolean {
-        return service.updateBeatmapNote(osuApiToken, id, body)
-    }
+    ): Boolean = service.updateBeatmapNote(osuApiToken, id, body)
 
     @DeleteMapping("/{id}/delete")
     @RolesAllowed(RolePermission.DEVELOPER)
     fun deleteBeatmap(
         @RequestHeader(HttpHeaders.AUTHORIZATION) osuApiToken: String,
-        @PathVariable("id") id: String
+        @PathVariable("id") id: String,
     ) {
         service.deleteBeatmap(osuApiToken, id)
     }

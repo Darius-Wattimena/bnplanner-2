@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class ProfileService(
     private val beatmapService: BeatmapService,
-    private val userService: UserService
+    private val userService: UserService,
 ) {
     fun getUserPairing(userId: String): List<ProfileStatisticsPairInfo> {
         val beatmaps = beatmapService.findBeatmapsByNominator(userId)
@@ -32,11 +32,11 @@ class ProfileService(
     private data class Count(
         var pending: Int,
         var ranked: Int,
-        var graveyard: Int
+        var graveyard: Int,
     )
 
-    private fun Map<String, Count>.toProfileStatisticsPairInfo(): List<ProfileStatisticsPairInfo> {
-        return this.mapNotNull { (userId, amount) ->
+    private fun Map<String, Count>.toProfileStatisticsPairInfo(): List<ProfileStatisticsPairInfo> =
+        this.mapNotNull { (userId, amount) ->
             val user = userService.findUserById(userId)
 
             if (user != null) {
@@ -44,26 +44,26 @@ class ProfileService(
                     name = user.username,
                     pairingPending = amount.pending,
                     pairingRanked = amount.ranked,
-                    pairingGraved = amount.graveyard
+                    pairingGraved = amount.graveyard,
                 )
             } else {
                 null
             }
         }
-    }
 
     private fun countOtherNominator(
         beatmapStatus: BeatmapStatus,
         userId: String,
         firstNominator: String,
         secondNominator: String,
-        currentCounts: MutableMap<String, Count>
+        currentCounts: MutableMap<String, Count>,
     ) {
-        val countingField = when (beatmapStatus) {
-            BeatmapStatus.Ranked -> Count::ranked
-            BeatmapStatus.Graved -> Count::graveyard
-            else -> Count::pending
-        }
+        val countingField =
+            when (beatmapStatus) {
+                BeatmapStatus.Ranked -> Count::ranked
+                BeatmapStatus.Graved -> Count::graveyard
+                else -> Count::pending
+            }
 
         if (firstNominator == userId) {
             if (secondNominator != "0") {

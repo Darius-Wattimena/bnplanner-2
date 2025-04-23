@@ -13,7 +13,7 @@ interface DiscordClient {
         beatmapId: String,
         editor: User?,
         confidential: Boolean,
-        gamemodes: List<Gamemode>
+        gamemodes: List<Gamemode>,
     )
 
     fun send(
@@ -22,6 +22,6 @@ interface DiscordClient {
         thumbnail: EmbedThumbnail,
         footer: EmbedFooter,
         confidential: Boolean,
-        gamemodes: List<Gamemode>
+        gamemodes: List<Gamemode>,
     )
 }

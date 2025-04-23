@@ -24,7 +24,7 @@ class UserService(
     private val dataSource: UserDataSource,
     private val recalculateDataSource: UserRecalculateDataSource,
     private val osuHttpClient: OsuHttpClient,
-    private val discordClient: DiscordClient
+    private val discordClient: DiscordClient,
 ) {
     companion object {
         const val MAX_USERS = 20
@@ -33,7 +33,11 @@ class UserService(
 
     private val log = KotlinLogging.logger { }
 
-    fun searchUser(username: String?, gamemodes: Set<Gamemode>?, roles: Set<Role>?): List<User> {
+    fun searchUser(
+        username: String?,
+        gamemodes: Set<Gamemode>?,
+        roles: Set<Role>?,
+    ): List<User> {
         val searchResult = dataSource.searchUser(username, gamemodes ?: emptySet(), roles ?: emptySet())
 
         log.debug { "Found ${searchResult.size} users, taking max $MAX_USERS users." }
@@ -43,29 +47,28 @@ class UserService(
             .take(MAX_USERS)
     }
 
-    private fun convertOsuUserToUser(osuUser: Me): User {
-        return User(
+    private fun convertOsuUserToUser(osuUser: Me): User =
+        User(
             osuId = osuUser.id,
             username = osuUser.username,
-            gamemodes = osuUser.groups?.mapNotNull { osuGroup ->
-                if (MeGroup.SupportedGroups.contains(osuGroup.id)) {
-                    osuGroup.playmodes?.map { playmode ->
-                        UserGamemode(
-                            gamemode = Gamemode.valueOf(playmode),
-                            role = Role.fromOsuId(osuGroup.id)
-                        )
-                    }
-                } else {
-                    // Unsupported usergroup
-                    null
-                }
-            }?.flatten() ?: emptyList()
+            gamemodes =
+                osuUser.groups
+                    ?.mapNotNull { osuGroup ->
+                        if (MeGroup.SupportedGroups.contains(osuGroup.id)) {
+                            osuGroup.playmodes?.map { playmode ->
+                                UserGamemode(
+                                    gamemode = Gamemode.valueOf(playmode.uppercase()),
+                                    role = Role.fromOsuId(osuGroup.id),
+                                )
+                            }
+                        } else {
+                            // Unsupported usergroup
+                            null
+                        }
+                    }?.flatten() ?: emptyList(),
         )
-    }
 
-    fun createUserByAiessEvent(event: AiessUserEvent): User {
-        return User(event.userId, event.username, emptyList())
-    }
+    fun createUserByAiessEvent(event: AiessUserEvent): User = User(event.userId, event.username, emptyList())
 
     fun createTemporaryUser(osuId: String): User {
         val tempUser = User(osuId, osuId, emptyList())
@@ -77,7 +80,11 @@ class UserService(
     /**
      * Find an osu user via the API and save them in the database for later use
      */
-    fun forceFindUserById(osuApiToken: String, osuId: String, logEventToDiscord: Boolean = true): User? {
+    fun forceFindUserById(
+        osuApiToken: String,
+        osuId: String,
+        logEventToDiscord: Boolean = true,
+    ): User? {
         val editor = getEditor(osuApiToken)
         val osuUser = osuHttpClient.findUserWithId(osuApiToken, osuId)
 
@@ -93,7 +100,7 @@ class UserService(
                 thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
                 footer = EmbedFooter("Nomination Planner"),
                 confidential = true,
-                gamemodes = listOf()
+                gamemodes = listOf(),
             )
 
             return restrictedUser
@@ -111,7 +118,7 @@ class UserService(
                 thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
                 footer = EmbedFooter("Nomination Planner"),
                 confidential = true,
-                gamemodes = listOf()
+                gamemodes = listOf(),
             )
         }
 
@@ -125,7 +132,7 @@ class UserService(
             return User(
                 MISSING_USER_ID,
                 "None",
-                gamemodes = emptyList()
+                gamemodes = emptyList(),
             )
         }
 

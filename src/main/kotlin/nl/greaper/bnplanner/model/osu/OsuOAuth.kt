@@ -5,5 +5,5 @@ data class OsuOAuth(
     val client_secret: String,
     val code: String,
     val grant_type: String,
-    val redirect_uri: String
+    val redirect_uri: String,
 )

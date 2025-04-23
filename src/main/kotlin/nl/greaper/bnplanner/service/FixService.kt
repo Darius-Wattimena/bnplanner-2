@@ -12,67 +12,85 @@ import kotlin.system.measureTimeMillis
 class FixService(
     private val beatmapDataSource: BeatmapDataSource,
     private val userService: UserService,
-    private val beatmapService: BeatmapService
+    private val beatmapService: BeatmapService,
 ) {
     val log = KotlinLogging.logger { }
 
-    fun syncAllBeatmaps(osuToken: String, page: BeatmapPage): SyncInfo {
-        return syncBeatmaps(
+    fun syncAllBeatmaps(
+        osuToken: String,
+        page: BeatmapPage,
+    ): SyncInfo =
+        syncBeatmaps(
             osuToken = osuToken,
             page = page,
-            status = emptySet()
+            status = emptySet(),
         )
-    }
 
-    fun syncBeatmaps(osuToken: String, page: BeatmapPage, status: Set<BeatmapStatus>): SyncInfo {
-        val beatmaps = beatmapService.findBeatmapsIds(
-            search = null,
-            artist = null,
-            title = null,
-            mapper = null,
-            status = status,
-            nominators = emptySet(),
-            page = page,
-            gamemodes = emptySet(),
-            missingNominator = emptySet()
-        )
+    fun syncBeatmaps(
+        osuToken: String,
+        page: BeatmapPage,
+        status: Set<BeatmapStatus>,
+    ): SyncInfo {
+        val beatmaps =
+            beatmapService.findBeatmapsIds(
+                search = null,
+                artist = null,
+                title = null,
+                mapper = null,
+                status = status,
+                nominators = emptySet(),
+                page = page,
+                gamemodes = emptySet(),
+                missingNominator = emptySet(),
+            )
 
         return syncBeatmaps(osuToken, beatmaps)
     }
 
-    fun syncSingleBeatmap(osuToken: String, beatmapId: String): SyncInfo {
+    fun syncSingleBeatmap(
+        osuToken: String,
+        beatmapId: String,
+    ): SyncInfo {
         log.info { "Syncing beatmap (id = $beatmapId)" }
-        val duration = measureTimeMillis {
-            syncBeatmapById(osuToken, beatmapId)
-        }
+        val duration =
+            measureTimeMillis {
+                syncBeatmapById(osuToken, beatmapId)
+            }
         log.info { "Synced beatmap in $duration ms (id = $beatmapId)" }
 
         return SyncInfo(
             duration = duration,
-            totalSynced = 1
+            totalSynced = 1,
         )
     }
 
-    fun syncBeatmaps(osuToken: String, beatmaps: Set<String>): SyncInfo {
+    fun syncBeatmaps(
+        osuToken: String,
+        beatmaps: Set<String>,
+    ): SyncInfo {
         val totalBeatmaps = beatmaps.count()
 
         log.info { "Syncing $totalBeatmaps beatmaps." }
 
-        val duration = measureTimeMillis {
-            beatmaps.forEachIndexed { index, beatmapId ->
-                syncBeatmapById(osuToken, beatmapId)
-                log.info { "[${index + 1}/$totalBeatmaps] Beatmap $beatmapId synced, sleeping." }
-                Thread.sleep(1_000L + Random.nextInt(0, 1000))
+        val duration =
+            measureTimeMillis {
+                beatmaps.forEachIndexed { index, beatmapId ->
+                    syncBeatmapById(osuToken, beatmapId)
+                    log.info { "[${index + 1}/$totalBeatmaps] Beatmap $beatmapId synced, sleeping." }
+                    Thread.sleep(1_000L + Random.nextInt(0, 1000))
+                }
             }
-        }
 
         return SyncInfo(
             duration = duration,
-            totalSynced = totalBeatmaps
+            totalSynced = totalBeatmaps,
         )
     }
 
-    private fun syncBeatmapById(osuToken: String, beatmapId: String) {
+    private fun syncBeatmapById(
+        osuToken: String,
+        beatmapId: String,
+    ) {
         val beatmap = beatmapService.findBeatmap(beatmapId)
 
         if (beatmap != null) {
@@ -94,55 +112,62 @@ class FixService(
             allUsers.add(beatmap.mapperId)
         }
 
-        val unrestrictedUsers = allUsers.filter { userId ->
-            val databaseUser = userService.findUserById(userId)
+        val unrestrictedUsers =
+            allUsers
+                .filter { userId ->
+                    val databaseUser = userService.findUserById(userId)
 
-            if (databaseUser != null) {
-                databaseUser.restricted != true
-            } else {
-                true
-            }
-        }.toSet()
+                    if (databaseUser != null) {
+                        databaseUser.restricted != true
+                    } else {
+                        true
+                    }
+                }.toSet()
 
         return syncUsers(
             osuToken = osuToken,
             users = unrestrictedUsers,
-            force = true
+            force = true,
         )
     }
 
-    fun syncUsers(osuToken: String, users: Set<String>, force: Boolean = false): SyncInfo {
+    fun syncUsers(
+        osuToken: String,
+        users: Set<String>,
+        force: Boolean = false,
+    ): SyncInfo {
         val token = osuToken.removePrefix("Bearer ")
         val totalUsers = users.count()
 
         log.info { "Checking $totalUsers users." }
 
-        val duration = measureTimeMillis {
-            users.forEachIndexed { index, userId ->
-                val currentUser = userService.findUserById(userId)
-                if (force || currentUser == null || currentUser.restricted == true) {
-                    // Remove the users when we already know it
-                    if (force && currentUser != null) {
-                        userService.deleteUser(currentUser)
-                    }
+        val duration =
+            measureTimeMillis {
+                users.forEachIndexed { index, userId ->
+                    val currentUser = userService.findUserById(userId)
+                    if (force || currentUser == null || currentUser.restricted == true) {
+                        // Remove the users when we already know it
+                        if (force && currentUser != null) {
+                            userService.deleteUser(currentUser)
+                        }
 
-                    userService.forceFindUserById(token, userId)
-                    log.info { "[${index + 1}/$totalUsers] User $userId synced, sleeping." }
-                    Thread.sleep(1_000L + Random.nextInt(0, 1000))
-                } else {
-                    log.info { "[${index + 1}/$totalUsers] User ${currentUser.username} is already good, skipping." }
+                        userService.forceFindUserById(token, userId)
+                        log.info { "[${index + 1}/$totalUsers] User $userId synced, sleeping." }
+                        Thread.sleep(1_000L + Random.nextInt(0, 1000))
+                    } else {
+                        log.info { "[${index + 1}/$totalUsers] User ${currentUser.username} is already good, skipping." }
+                    }
                 }
             }
-        }
 
         return SyncInfo(
             duration = duration,
-            totalSynced = totalUsers
+            totalSynced = totalUsers,
         )
     }
 
     data class SyncInfo(
         val duration: Long,
-        val totalSynced: Int
+        val totalSynced: Int,
     )
 }

@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:enum-entry-name-case")
+
 package nl.greaper.bnplanner.model.aiess
 
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -8,18 +10,15 @@ data class AiessUserEvent(
      * add | remove
      */
     val type: AiessUserEventType,
-
     /**
      * The osu ID of the user being moved.
      */
     val userId: String,
-
     /**
      * The current username of the user in osu.
      */
     @JsonProperty("userName")
     val username: String,
-
     /**
      * osu ID of the group the user is moved to/from.
      *
@@ -29,15 +28,14 @@ data class AiessUserEvent(
      * - 32 = PBN
      */
     val groupId: String,
-
     /**
      * osu | taiko | fruits | mania
      */
     @JsonProperty("groupMode")
-    val gamemode: Gamemode
+    val gamemode: Gamemode,
 )
 
 enum class AiessUserEventType {
     add,
-    remove
+    remove,
 }

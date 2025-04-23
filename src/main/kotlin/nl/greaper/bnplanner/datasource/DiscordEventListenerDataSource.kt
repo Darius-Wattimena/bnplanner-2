@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(prefix = "discord", name = ["enabled"], havingValue = "true")
-class DiscordEventListenerDataSource(private val database: MongoDatabase) : BaseDataSource<DiscordEventListener>() {
-    override fun initCollection(): MongoCollection<DiscordEventListener> {
-        return database.getCollection<DiscordEventListener>("discord")
-    }
+class DiscordEventListenerDataSource(
+    private val database: MongoDatabase,
+) : BaseDataSource<DiscordEventListener>() {
+    override fun initCollection(): MongoCollection<DiscordEventListener> = database.getCollection<DiscordEventListener>("discord")
 
     private val listeners = this.list().toMutableList()
 
@@ -32,31 +32,37 @@ class DiscordEventListenerDataSource(private val database: MongoDatabase) : Base
 
     fun getListeners() = listeners.toList()
 
-    fun findByGuildId(guildId: String): List<DiscordEventListener> {
-        return listeners.filter {
+    fun findByGuildId(guildId: String): List<DiscordEventListener> =
+        listeners.filter {
             it.guildId == guildId
         }
-    }
 
-    fun findByGuildIdAndChannelId(guildId: String, channelId: String): DiscordEventListener? {
-        return listeners.firstOrNull { it.guildId == guildId && it.channelId == channelId }
-    }
+    fun findByGuildIdAndChannelId(
+        guildId: String,
+        channelId: String,
+    ): DiscordEventListener? =
+        listeners.firstOrNull {
+            it.guildId == guildId && it.channelId == channelId
+        }
 
     fun create(newListener: DiscordEventListener): InsertOneResult {
         addInMemoryListener(newListener)
         return insertOne(newListener)
     }
 
-    fun replace(oldListener: DiscordEventListener, newListener: DiscordEventListener): UpdateResult {
+    fun replace(
+        oldListener: DiscordEventListener,
+        newListener: DiscordEventListener,
+    ): UpdateResult {
         removeInMemoryListener(oldListener)
         addInMemoryListener(newListener)
 
         return collection.replaceOne(
             and(
                 DiscordEventListener::guildId eq oldListener.guildId,
-                DiscordEventListener::channelId eq oldListener.channelId
+                DiscordEventListener::channelId eq oldListener.channelId,
             ),
-            newListener
+            newListener,
         )
     }
 
@@ -65,8 +71,8 @@ class DiscordEventListenerDataSource(private val database: MongoDatabase) : Base
         return collection.deleteOne(
             and(
                 DiscordEventListener::guildId eq listener.guildId,
-                DiscordEventListener::channelId eq listener.channelId
-            )
+                DiscordEventListener::channelId eq listener.channelId,
+            ),
         )
     }
 }

@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v2/profile")
-class ProfileController(private val service: ProfileService) {
+class ProfileController(
+    private val service: ProfileService,
+) {
     @RolesAllowed(RolePermission.VIEWER)
     @GetMapping("/{id}/pairing")
     fun getPairing(
         @PathVariable("id") id: String,
-    ): List<ProfileStatisticsPairInfo> {
-        return service.getUserPairing(id)
-    }
+    ): List<ProfileStatisticsPairInfo> = service.getUserPairing(id)
 }

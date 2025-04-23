@@ -11,8 +11,8 @@ import nl.greaper.bnplanner.UNFINISHED_STATUS_ICON
 import nl.greaper.bnplanner.model.Gamemode
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 
-fun BeatmapStatus.getEmojiIcon(): String {
-    return when (this) {
+fun BeatmapStatus.getEmojiIcon(): String =
+    when (this) {
         BeatmapStatus.Qualified -> QUALIFY_STATUS_ICON
         BeatmapStatus.Nominated -> NOMINATE_STATUS_ICON
         BeatmapStatus.Disqualified -> DISQUALIFY_STATUS_ICON
@@ -22,13 +22,11 @@ fun BeatmapStatus.getEmojiIcon(): String {
         BeatmapStatus.Graved -> GRAVED_STATUS_ICON
         BeatmapStatus.Unfinished -> UNFINISHED_STATUS_ICON
     }
-}
 
-fun Gamemode.toReadableName(): String {
-    return when (this) {
+fun Gamemode.toReadableName(): String =
+    when (this) {
         Gamemode.osu -> "osu"
         Gamemode.taiko -> "taiko"
         Gamemode.fruits -> "catch"
         Gamemode.mania -> "mania"
     }
-}

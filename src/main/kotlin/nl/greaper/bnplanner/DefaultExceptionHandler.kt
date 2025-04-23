@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 class DefaultExceptionHandler(
-    private val discordClient: DiscordClient
+    private val discordClient: DiscordClient,
 ) : ResponseEntityExceptionHandler() {
     private val log = KotlinLogging.logger { }
 
@@ -26,7 +26,7 @@ class DefaultExceptionHandler(
             thumbnail = EmbedThumbnail(""),
             footer = EmbedFooter(""),
             confidential = true,
-            gamemodes = emptyList()
+            gamemodes = emptyList(),
         )
 
         log.error(ex) { "Unhandled exception occurred" }

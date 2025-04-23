@@ -7,10 +7,10 @@ data class User(
     val osuId: String,
     val username: String,
     val gamemodes: List<UserGamemode>,
-    val restricted: Boolean? = null
+    val restricted: Boolean? = null,
 )
 
 data class UserGamemode(
     val gamemode: Gamemode,
-    val role: Role
+    val role: Role,
 )

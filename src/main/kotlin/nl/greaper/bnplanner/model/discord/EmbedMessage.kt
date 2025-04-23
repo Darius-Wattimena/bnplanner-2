@@ -28,11 +28,17 @@ data class EmbedMessage(
     // val timestamp: String,
     val color: Int,
     val thumbnail: EmbedThumbnail,
-    val footer: EmbedFooter
+    val footer: EmbedFooter,
 )
 
-data class EmbedThumbnail(val url: String)
-data class EmbedFooter(val text: String, val icon_url: String? = null)
+data class EmbedThumbnail(
+    val url: String,
+)
+
+data class EmbedFooter(
+    val text: String,
+    val icon_url: String? = null,
+)
 
 enum class EmbedColor {
     AQUA,
@@ -56,11 +62,11 @@ enum class EmbedColor {
     LIGHT_GREY,
     DARK_NAVY,
     LUMINOUS_VIVID_PINK,
-    DARK_VIVID_PINK
+    DARK_VIVID_PINK,
 }
 
-fun EmbedColor.getValue(): Int {
-    return when (this) {
+fun EmbedColor.getValue(): Int =
+    when (this) {
         AQUA -> 1752220
         GREEN -> 3066993
         BLUE -> 3447003
@@ -84,4 +90,3 @@ fun EmbedColor.getValue(): Int {
         LUMINOUS_VIVID_PINK -> 16580705
         DARK_VIVID_PINK -> 12320855
     }
-}

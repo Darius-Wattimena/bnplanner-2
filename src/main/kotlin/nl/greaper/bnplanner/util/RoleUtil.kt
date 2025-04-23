@@ -4,31 +4,30 @@ import nl.greaper.bnplanner.auth.RolePermission
 import nl.greaper.bnplanner.model.Role
 import nl.greaper.bnplanner.model.User
 
-fun getHighestRole(osuRoles: Set<Role>): Role {
-    return when {
+fun getHighestRole(osuRoles: Set<Role>): Role =
+    when {
         Role.NominationAssessment in osuRoles -> Role.NominationAssessment
         Role.Nominator in osuRoles -> Role.Nominator
         Role.Probation in osuRoles -> Role.Probation
         else -> Role.Mapper
     }
-}
 
 fun getRolePermissions(osuRole: Role): RolePermission {
-    val permissions = when (osuRole) {
-        Role.Mapper -> setOf(RolePermission.VIEWER)
-        Role.Nominator, Role.Probation -> setOf(RolePermission.VIEWER, RolePermission.EDITOR)
-        Role.NominationAssessment -> setOf(RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
-    }
+    val permissions =
+        when (osuRole) {
+            Role.Mapper -> setOf(RolePermission.VIEWER)
+            Role.Nominator, Role.Probation -> setOf(RolePermission.VIEWER, RolePermission.EDITOR)
+            Role.NominationAssessment -> setOf(RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
+        }
 
     return RolePermission(osuRole, permissions)
 }
 
-fun getAiessRole(): RolePermission {
-    return RolePermission(
+fun getAiessRole(): RolePermission =
+    RolePermission(
         Role.NominationAssessment,
-        setOf(RolePermission.BOT)
+        setOf(RolePermission.BOT),
     )
-}
 
 fun getHighestRoleForUser(user: User?): RolePermission {
     if (user == null) {
@@ -38,7 +37,7 @@ fun getHighestRoleForUser(user: User?): RolePermission {
     if (user.osuId == "2369776") {
         return RolePermission(
             Role.NominationAssessment,
-            setOf(RolePermission.DEVELOPER, RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR)
+            setOf(RolePermission.DEVELOPER, RolePermission.ADMIN, RolePermission.VIEWER, RolePermission.EDITOR),
         )
     }
 

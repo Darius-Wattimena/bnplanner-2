@@ -22,13 +22,13 @@ data class BeatmapSet(
         val rulesets: List<String>,
         val reset: Boolean,
         @JsonAlias("user_id")
-        val userId: Long
+        val userId: Long,
     )
 
     data class Beatmap(
         val total_length: Int,
         val user_id: Int,
         val mode: Gamemode,
-        val version: String
+        val version: String,
     )
 }

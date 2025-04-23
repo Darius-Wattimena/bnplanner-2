@@ -10,5 +10,5 @@ enum class PlannerEvent {
 
     USER_CREATE,
     USER_LOGIN,
-    USER_UPDATE_GROUP
+    USER_UPDATE_GROUP,
 }

@@ -7,5 +7,5 @@ data class UserContext(
     val accessToken: String,
     val refreshToken: String,
     val validUntilEpochMilli: Long,
-    val permission: RolePermission
+    val permission: RolePermission,
 )

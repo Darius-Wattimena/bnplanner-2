@@ -13,21 +13,25 @@ import org.springframework.test.context.TestConstructor
 
 @ContextConfiguration
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class UserDataSourceTest(database: MongoDatabase) : BaseTest() {
+class UserDataSourceTest(
+    database: MongoDatabase,
+) : BaseTest() {
     private val dataSource = UserDataSource(database)
 
     companion object {
-        val TEST_USER = User(
-            osuId = "1",
-            username = "TEST_USER",
-            gamemodes = listOf(UserGamemode(Gamemode.osu, Role.Nominator))
-        )
+        val TEST_USER =
+            User(
+                osuId = "1",
+                username = "TEST_USER",
+                gamemodes = listOf(UserGamemode(Gamemode.osu, Role.Nominator)),
+            )
         val TEST_USER_2 = TEST_USER.copy(osuId = "2")
-        val TEST_USER_3 = User(
-            osuId = "3",
-            username = "TEST_USER_3",
-            gamemodes = listOf(UserGamemode(Gamemode.osu, Role.Nominator), UserGamemode(Gamemode.fruits, Role.Nominator))
-        )
+        val TEST_USER_3 =
+            User(
+                osuId = "3",
+                username = "TEST_USER_3",
+                gamemodes = listOf(UserGamemode(Gamemode.osu, Role.Nominator), UserGamemode(Gamemode.fruits, Role.Nominator)),
+            )
     }
 
     @Test
@@ -46,10 +50,11 @@ class UserDataSourceTest(database: MongoDatabase) : BaseTest() {
         dataSource.addInMemoryUser(TEST_USER)
         dataSource.addInMemoryUser(TEST_USER_2)
 
-        val expectedById = mapOf(
-            "1" to TEST_USER,
-            "2" to TEST_USER_2
-        )
+        val expectedById =
+            mapOf(
+                "1" to TEST_USER,
+                "2" to TEST_USER_2,
+            )
         val expectedByGamemode = createUsersByGamemode(osu = setOf("1", "2"))
 
         assertEquals(expectedById, dataSource.usersByOsuId)
@@ -122,13 +127,12 @@ class UserDataSourceTest(database: MongoDatabase) : BaseTest() {
         osu: Set<String> = emptySet(),
         taiko: Set<String> = emptySet(),
         fruits: Set<String> = emptySet(),
-        mania: Set<String> = emptySet()
-    ): Map<Gamemode, Set<String>> {
-        return mapOf(
+        mania: Set<String> = emptySet(),
+    ): Map<Gamemode, Set<String>> =
+        mapOf(
             Gamemode.osu to osu,
             Gamemode.taiko to taiko,
             Gamemode.fruits to fruits,
-            Gamemode.mania to mania
+            Gamemode.mania to mania,
         )
-    }
 }

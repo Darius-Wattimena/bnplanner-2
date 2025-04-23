@@ -2,9 +2,8 @@ package nl.greaper.bnplanner.model.osu
 
 data class MeGroup(
     val id: String,
-    val playmodes: List<String>?
+    val playmodes: List<String>?,
 ) {
-
     companion object {
         val NAT = "7"
         val BN = "28"

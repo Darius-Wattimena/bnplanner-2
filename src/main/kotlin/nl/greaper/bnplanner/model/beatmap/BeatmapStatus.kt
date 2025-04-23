@@ -8,11 +8,12 @@ enum class BeatmapStatus {
     Pending,
     Ranked,
     Graved,
-    Unfinished;
+    Unfinished,
+    ;
 
     companion object {
-        fun fromPriorityStatus(prio: Int): BeatmapStatus? {
-            return when (prio) {
+        fun fromPriorityStatus(prio: Int): BeatmapStatus? =
+            when (prio) {
                 1 -> Qualified
                 2 -> Nominated
                 3 -> Disqualified
@@ -23,10 +24,9 @@ enum class BeatmapStatus {
                 8 -> Unfinished
                 else -> null
             }
-        }
 
-        fun BeatmapStatus.toPriorityStatus(): Int {
-            return when (this) {
+        fun BeatmapStatus.toPriorityStatus(): Int =
+            when (this) {
                 Qualified -> 1
                 Nominated -> 2
                 Disqualified -> 3
@@ -36,6 +36,5 @@ enum class BeatmapStatus {
                 Graved -> 7
                 Unfinished -> 8
             }
-        }
     }
 }

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(prefix = "discord", name = ["enabled"], havingValue = "true")
 class DiscordWebhookClient(
     private val dataSource: DiscordEventListenerDataSource,
-    private val jda: JDA
+    private val jda: JDA,
 ) : DiscordClient {
     val log = KotlinLogging.logger { }
 
@@ -28,17 +28,15 @@ class DiscordWebhookClient(
         beatmapId: String,
         editor: User?,
         confidential: Boolean,
-        gamemodes: List<Gamemode>
-    ) {
-        return send(
-            description = description,
-            color = color,
-            thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmapId}l.jpg"),
-            footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
-            confidential = confidential,
-            gamemodes = gamemodes
-        )
-    }
+        gamemodes: List<Gamemode>,
+    ) = send(
+        description = description,
+        color = color,
+        thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmapId}l.jpg"),
+        footer = EmbedFooter(editor?.username ?: "", "https://a.ppy.sh/${editor?.osuId}"),
+        confidential = confidential,
+        gamemodes = gamemodes,
+    )
 
     override fun send(
         description: String,
@@ -46,31 +44,30 @@ class DiscordWebhookClient(
         thumbnail: EmbedThumbnail,
         footer: EmbedFooter,
         confidential: Boolean,
-        gamemodes: List<Gamemode>
-    ) {
-        return send(
-            EmbedMessage(
-                description = description,
-                color = color.getValue(),
-                thumbnail = thumbnail,
-                footer = footer
-            ),
-            confidential,
-            gamemodes
-        )
-    }
+        gamemodes: List<Gamemode>,
+    ) = send(
+        EmbedMessage(
+            description = description,
+            color = color.getValue(),
+            thumbnail = thumbnail,
+            footer = footer,
+        ),
+        confidential,
+        gamemodes,
+    )
 
     private fun send(
         embedMessage: EmbedMessage,
         confidential: Boolean,
-        gamemodes: List<Gamemode>
+        gamemodes: List<Gamemode>,
     ) {
-        val messageEmbed = EmbedBuilder()
-            .setDescription(embedMessage.description)
-            .setColor(embedMessage.color)
-            .setFooter(embedMessage.footer.text, embedMessage.footer.icon_url)
-            .setThumbnail(embedMessage.thumbnail.url)
-            .build()
+        val messageEmbed =
+            EmbedBuilder()
+                .setDescription(embedMessage.description)
+                .setColor(embedMessage.color)
+                .setFooter(embedMessage.footer.text, embedMessage.footer.icon_url)
+                .setThumbnail(embedMessage.thumbnail.url)
+                .build()
 
         val listeners = dataSource.getListeners()
 

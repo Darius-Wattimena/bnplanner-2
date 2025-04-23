@@ -10,7 +10,11 @@ import nl.greaper.bnplanner.model.beatmap.BeatmapStatus
 import nl.greaper.bnplanner.model.beatmap.BeatmapStatus.Companion.toPriorityStatus
 
 class BeatmapStatusSerializer : StdSerializer<BeatmapStatus>(BeatmapStatus::class.java) {
-    override fun serialize(status: BeatmapStatus?, gen: JsonGenerator, provider: SerializerProvider) {
+    override fun serialize(
+        status: BeatmapStatus?,
+        gen: JsonGenerator,
+        provider: SerializerProvider,
+    ) {
         val parsedStatus = status?.toPriorityStatus() ?: return
 
         gen.writeNumber(parsedStatus)
@@ -18,7 +22,10 @@ class BeatmapStatusSerializer : StdSerializer<BeatmapStatus>(BeatmapStatus::clas
 }
 
 class BeatmapStatusDeserializer : StdDeserializer<BeatmapStatus>(BeatmapStatus::class.java) {
-    override fun deserialize(parser: JsonParser, context: DeserializationContext): BeatmapStatus? {
+    override fun deserialize(
+        parser: JsonParser,
+        context: DeserializationContext,
+    ): BeatmapStatus? {
         val value = parser.intValue
 
         return BeatmapStatus.fromPriorityStatus(value)

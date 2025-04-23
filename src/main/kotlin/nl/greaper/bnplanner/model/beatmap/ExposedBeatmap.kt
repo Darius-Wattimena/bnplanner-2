@@ -12,19 +12,18 @@ data class ExposedBeatmap(
     val mapper: User,
     val status: BeatmapStatus,
     val gamemodes: List<ExposedBeatmapGamemode>,
-
     val dateAdded: Instant,
     val dateUpdated: Instant,
-    val dateRanked: Instant?
+    val dateRanked: Instant?,
 )
 
 data class ExposedBeatmapGamemode(
     val gamemode: Gamemode,
     val nominators: List<ExposedBeatmapNominator>,
-    val isReady: Boolean
+    val isReady: Boolean,
 )
 
 data class ExposedBeatmapNominator(
     val nominator: User,
-    val hasNominated: Boolean
+    val hasNominated: Boolean,
 )

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/v2/user")
 class UserController(
-    private val userService: UserService
+    private val userService: UserService,
 ) {
     @GetMapping("/search")
     @RolesAllowed(RolePermission.VIEWER)
@@ -22,7 +22,5 @@ class UserController(
         @RequestParam(required = false) username: String?,
         @RequestParam(required = false) gamemodes: Set<Gamemode>?,
         @RequestParam(required = false) roles: Set<Role>?,
-    ): List<User> {
-        return userService.searchUser(username, gamemodes, roles)
-    }
+    ): List<User> = userService.searchUser(username, gamemodes, roles)
 }

@@ -19,12 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtTokenFilter(
     private val aiess: AiessProperties,
-    private val userService: UserService
+    private val userService: UserService,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        chain: FilterChain
+        chain: FilterChain,
     ) {
         // Get authorization header and validate
         val header = request.getHeader(AUTHORIZATION)
@@ -35,14 +35,22 @@ class JwtTokenFilter(
 
         when {
             header.startsWith("Aiess ") -> {
-                val token = header.split(" ".toRegex()).toTypedArray().getOrNull(1)?.trim()
+                val token =
+                    header
+                        .split(" ".toRegex())
+                        .toTypedArray()
+                        .getOrNull(1)
+                        ?.trim()
 
                 if (aiess.token == token) {
                     val permission = getAiessRole()
 
-                    val authentication = UsernamePasswordAuthenticationToken(
-                        permission, token, permission.roles.map { SimpleGrantedAuthority("ROLE_$it") }
-                    )
+                    val authentication =
+                        UsernamePasswordAuthenticationToken(
+                            permission,
+                            token,
+                            permission.roles.map { SimpleGrantedAuthority("ROLE_$it") },
+                        )
 
                     authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                     SecurityContextHolder.getContext().authentication = authentication
@@ -52,7 +60,12 @@ class JwtTokenFilter(
             }
             header.startsWith("Bearer ") -> {
                 // Get jwt token and validate
-                val token = header.split(" ".toRegex()).toTypedArray().getOrNull(1)?.trim()
+                val token =
+                    header
+                        .split(" ".toRegex())
+                        .toTypedArray()
+                        .getOrNull(1)
+                        ?.trim()
                 if (token == null) {
                     chain.doFilter(request, response)
                     return
@@ -76,9 +89,12 @@ class JwtTokenFilter(
 
                 val permission = getHighestRoleForUser(user)
 
-                val authentication = UsernamePasswordAuthenticationToken(
-                    permission, token, permission.roles.map { SimpleGrantedAuthority("ROLE_$it") }
-                )
+                val authentication =
+                    UsernamePasswordAuthenticationToken(
+                        permission,
+                        token,
+                        permission.roles.map { SimpleGrantedAuthority("ROLE_$it") },
+                    )
 
                 authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                 SecurityContextHolder.getContext().authentication = authentication

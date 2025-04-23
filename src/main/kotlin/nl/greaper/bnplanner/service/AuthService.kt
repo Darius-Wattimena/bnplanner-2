@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService(
     private val osuService: OsuService,
-    private val discordClient: DiscordClient
+    private val discordClient: DiscordClient,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -23,8 +23,8 @@ class AuthService(
             val context = osuService.getUserContextByToken(authToken)
             return context.also { logLogin(it) }
         } catch (exception: Throwable) {
-            logLogin(null, exception = exception)
             log.error(exception) { "User login failed" }
+            logLogin(null, exception = exception)
         }
 
         return null
@@ -35,50 +35,70 @@ class AuthService(
             val parsedToken = refreshToken.dropLast(1) // Somehow frontend always sends a trailing '='
             val authToken = osuService.getAuthTokenByRefreshToken(parsedToken)
             if (authToken != null) {
-                return osuService.getUserContextByToken(authToken)
+                return osuService
+                    .getUserContextByToken(authToken)
                     .also { logLogin(context = it, refresh = true) }
             }
 
             // Couldn't get auth token when refreshing
             return null
         } catch (exception: Throwable) {
+            log.error(exception) { "User token refresh failed" }
             logLogin(
                 context = null,
                 refresh = true,
-                exception = exception
+                exception = exception,
             )
-            log.error(exception) { "User token refresh failed" }
         }
 
         return null
     }
 
-    fun logLogin(context: UserContext?, refresh: Boolean = false, exception: Throwable? = null) {
+    fun logLogin(
+        context: UserContext?,
+        refresh: Boolean = false,
+        exception: Throwable? = null,
+    ) {
         val user = context?.user
 
-        val loginMessagePart = if (refresh) {
-            "refreshing user login"
-        } else {
-            "logging in"
-        }
-
-        val loginMessage = when {
-            exception?.message != null -> {
-                "**ERROR:** Unexpected error occurred while $loginMessagePart\n" +
-                    exception.message
+        val loginMessagePart =
+            if (refresh) {
+                "refreshing user login"
+            } else {
+                "logging in"
             }
-            context == null -> "**ERROR:** Could not set up context while $loginMessagePart"
-            user == null -> "**ERROR:** Could not find user while $loginMessagePart"
-            else -> "**LOGIN:** ${user.username} ${if (refresh) "refreshed login" else "logged in"}"
-        }
 
+        val loginMessage =
+            when {
+                exception?.message != null ->
+                    buildString {
+                        appendLine("**ERROR:** Unexpected error occurred while $loginMessagePart")
+                        append(exception.message)
+                    }
+                context == null -> {
+                    "**ERROR:** Could not set up context while $loginMessagePart"
+                }
+                user == null -> {
+                    "**ERROR:** Could not find user while $loginMessagePart"
+                }
+                else -> {
+                    "**LOGIN:** ${user.username} ${if (refresh) "refreshed login" else "logged in"}"
+                }
+            }
+
+        val icon =
+            if (loginMessage.startsWith("**ERROR")) {
+                LOGIN_FAILED_ICON
+            } else {
+                LOGIN_ICON
+            }
         discordClient.send(
-            description = "${if (loginMessage.startsWith("**ERROR")) { LOGIN_FAILED_ICON } else { LOGIN_ICON }} $loginMessage",
+            description = "$icon $loginMessage",
             color = if (exception != null) EmbedColor.RED else EmbedColor.GREEN,
             thumbnail = EmbedThumbnail(user?.osuId?.let { "https://a.ppy.sh/$it" } ?: ""),
             footer = EmbedFooter(user?.username ?: "", "https://a.ppy.sh/${user?.osuId}"),
             confidential = true,
-            gamemodes = emptyList()
+            gamemodes = emptyList(),
         )
     }
 }

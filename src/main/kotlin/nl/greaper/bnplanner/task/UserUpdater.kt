@@ -14,7 +14,7 @@ class UserUpdater(
     private val osuService: OsuService,
     private val userService: UserService,
     private val userRecalculateDataSource: UserRecalculateDataSource,
-    private val osuTokenDataSource: OsuTokenDataSource
+    private val osuTokenDataSource: OsuTokenDataSource,
 ) {
     @Scheduled(cron = "*/15 * * * * *")
     fun taskUserUpdater() {

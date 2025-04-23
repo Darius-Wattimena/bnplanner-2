@@ -7,8 +7,8 @@ import org.litote.kmongo.getCollection
 import org.springframework.stereotype.Component
 
 @Component
-class OsuTokenDataSource(private val database: MongoDatabase) : BaseDataSource<AuthToken>() {
-    override fun initCollection(): MongoCollection<AuthToken> {
-        return database.getCollection<AuthToken>("authToken")
-    }
+class OsuTokenDataSource(
+    private val database: MongoDatabase,
+) : BaseDataSource<AuthToken>() {
+    override fun initCollection(): MongoCollection<AuthToken> = database.getCollection<AuthToken>("authToken")
 }
