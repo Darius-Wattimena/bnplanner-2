@@ -138,7 +138,7 @@ class DiscordConfig(
             val gamemodeValue = event.getOption("gamemode")?.asString
             val gamemode =
                 if (gamemodeValue != null) {
-                    Gamemode.valueOf(gamemodeValue.uppercase())
+                    Gamemode.valueOf(gamemodeValue.lowercase())
                 } else {
                     null
                 }

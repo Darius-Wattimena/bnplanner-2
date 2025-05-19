@@ -57,7 +57,7 @@ class UserService(
                         if (MeGroup.SupportedGroups.contains(osuGroup.id)) {
                             osuGroup.playmodes?.map { playmode ->
                                 UserGamemode(
-                                    gamemode = Gamemode.valueOf(playmode.uppercase()),
+                                    gamemode = Gamemode.valueOf(playmode.lowercase()),
                                     role = Role.fromOsuId(osuGroup.id),
                                 )
                             }
