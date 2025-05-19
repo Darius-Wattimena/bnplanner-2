@@ -68,7 +68,7 @@ class DiscordWebhookClient(
                 .setFooter(embedMessage.footer.text, embedMessage.footer.icon_url)
 
 
-        if (embedMessage.thumbnail.url == null) {
+        if (embedMessage.thumbnail.url != "") {
             messageEmbedBuilder.setThumbnail(embedMessage.thumbnail.url)
         }
 
