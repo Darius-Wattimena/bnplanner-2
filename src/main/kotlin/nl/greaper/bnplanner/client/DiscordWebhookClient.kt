@@ -61,13 +61,18 @@ class DiscordWebhookClient(
         confidential: Boolean,
         gamemodes: List<Gamemode>,
     ) {
-        val messageEmbed =
+        val messageEmbedBuilder =
             EmbedBuilder()
                 .setDescription(embedMessage.description)
                 .setColor(embedMessage.color)
                 .setFooter(embedMessage.footer.text, embedMessage.footer.icon_url)
-                .setThumbnail(embedMessage.thumbnail.url)
-                .build()
+
+
+        if (embedMessage.thumbnail.url == null) {
+            messageEmbedBuilder.setThumbnail(embedMessage.thumbnail.url)
+        }
+
+        val messageEmbed = messageEmbedBuilder.build()
 
         val listeners = dataSource.getListeners()
 
