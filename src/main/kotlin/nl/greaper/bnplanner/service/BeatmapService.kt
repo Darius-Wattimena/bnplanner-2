@@ -49,7 +49,7 @@ class BeatmapService(
     private val dataSource: BeatmapDataSource,
     private val userService: UserService,
     private val osuHttpClient: OsuHttpClient,
-    private val discordClient: DiscordClient,
+    private val discordClient: DiscordClient?,
 ) {
     val log = KotlinLogging.logger { }
 
@@ -647,7 +647,7 @@ class BeatmapService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.GREEN,
             beatmapId = beatmap.osuId,
@@ -670,7 +670,7 @@ class BeatmapService(
                 .append("\n[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.RED,
             beatmapId = beatmap.osuId,
@@ -694,7 +694,7 @@ class BeatmapService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
@@ -717,7 +717,7 @@ class BeatmapService(
                 .append("\n[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.ORANGE,
             beatmapId = beatmap.osuId,
@@ -784,7 +784,7 @@ class BeatmapService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [${gamemode.toReadableName()}]")
 
-        discordClient.send(
+        discordClient?.send(
             description = message.toString(),
             color = EmbedColor.BLUE,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -858,7 +858,7 @@ class BeatmapService(
                     }}]",
                 )
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,
@@ -901,7 +901,7 @@ class BeatmapService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$beatmapGamemodeMessagePart]")
 
-        discordClient.sendBeatmapUpdate(
+        discordClient?.sendBeatmapUpdate(
             description = message.toString(),
             color = EmbedColor.BLUE,
             beatmapId = beatmap.osuId,

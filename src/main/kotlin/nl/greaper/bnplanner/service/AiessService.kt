@@ -43,7 +43,7 @@ class AiessService(
     private val beatmapDataSource: BeatmapDataSource,
     private val userService: UserService,
     private val userDataSource: UserDataSource,
-    private val discordClient: DiscordClient,
+    private val discordClient: DiscordClient?,
 ) {
     val log = KotlinLogging.logger { }
 
@@ -305,7 +305,7 @@ class AiessService(
                 .append("**ERROR: Incomplete AiessBeatmapEvent**")
                 .append("\n```${jacksonObjectMapper().writeValueAsString(event)}```")
 
-        discordClient.send(
+        discordClient?.send(
             description = message.toString(),
             color = EmbedColor.RED,
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${event.beatmapSetId}l.jpg"),
@@ -326,7 +326,7 @@ class AiessService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.send(
+        discordClient?.send(
             description = message.toString(),
             color = getMessageColor(newStatus),
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -355,7 +355,7 @@ class AiessService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId})")
 
-        discordClient.send(
+        discordClient?.send(
             description = message.toString(),
             color = getMessageColor(newStatus),
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -380,7 +380,7 @@ class AiessService(
                 .append("\n**[${beatmap.artist} - ${beatmap.title}](https://osu.ppy.sh/beatmapsets/${beatmap.osuId})**")
                 .append("\nMapped by [${beatmap.mapper}](https://osu.ppy.sh/users/${beatmap.mapperId}) [$gamemodeText]")
 
-        discordClient.send(
+        discordClient?.send(
             description = message.toString(),
             color = getMessageColor(newStatus),
             thumbnail = EmbedThumbnail("https://b.ppy.sh/thumb/${beatmap.osuId}l.jpg"),
@@ -496,7 +496,7 @@ class AiessService(
                 "**$topLine**\nGamemode ${event.gamemode}"
             }
 
-        discordClient.send(
+        discordClient?.send(
             description = text,
             color = color,
             thumbnail = EmbedThumbnail("https://a.ppy.sh/${user.osuId}"),

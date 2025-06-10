@@ -13,13 +13,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 class DefaultExceptionHandler(
-    private val discordClient: DiscordClient,
+    private val discordClient: DiscordClient?,
 ) : ResponseEntityExceptionHandler() {
     private val log = KotlinLogging.logger { }
 
     @ExceptionHandler
     fun exception(ex: Exception): ResponseEntity<String> {
-        discordClient.send(
+        discordClient?.send(
             "**ERROR:**\n" +
                 "```\n${ex.stackTraceToString().take(1600)}\n```",
             color = EmbedColor.RED,

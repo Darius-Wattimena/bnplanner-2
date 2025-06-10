@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService(
     private val osuService: OsuService,
-    private val discordClient: DiscordClient,
+    private val discordClient: DiscordClient?,
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -92,7 +92,7 @@ class AuthService(
             } else {
                 LOGIN_ICON
             }
-        discordClient.send(
+        discordClient?.send(
             description = "$icon $loginMessage",
             color = if (exception != null) EmbedColor.RED else EmbedColor.GREEN,
             thumbnail = EmbedThumbnail(user?.osuId?.let { "https://a.ppy.sh/$it" } ?: ""),

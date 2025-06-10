@@ -24,7 +24,7 @@ class UserService(
     private val dataSource: UserDataSource,
     private val recalculateDataSource: UserRecalculateDataSource,
     private val osuHttpClient: OsuHttpClient,
-    private val discordClient: DiscordClient,
+    private val discordClient: DiscordClient?,
 ) {
     companion object {
         const val MAX_USERS = 20
@@ -94,7 +94,7 @@ class UserService(
             dataSource.saveUser(restrictedUser)
             log.info { "[CREATE] ${editor?.username} added restricted user (osuId = $osuId)" }
 
-            discordClient.send(
+            discordClient?.send(
                 description = "Could not find user with id $osuId, created restricted user",
                 color = EmbedColor.ORANGE,
                 thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
@@ -112,7 +112,7 @@ class UserService(
 
         if (logEventToDiscord) {
             log.info { "[CREATE] ${editor?.username} added user ${newUser.username} (osuId = $osuId)" }
-            discordClient.send(
+            discordClient?.send(
                 description = "Created user $osuId, with username: ${newUser.username}",
                 color = EmbedColor.BLUE,
                 thumbnail = EmbedThumbnail("https://a.ppy.sh/$osuId"),
